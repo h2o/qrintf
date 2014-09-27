@@ -42,11 +42,13 @@ $re_expr = qr {
 my $src = join '', <STDIN>;
 
 # rewrite sn?printf
-my @blocks = split /((?<![A-Za-z0-9_])(?:_qp_|)sn?printf)/, $src;
+my @blocks = split /((?:_qp_|)sn?printf)/, $src;
 $src = '';
 while (@blocks) {
     my $block = shift @blocks;
-    if ($block =~ /^(_qp_|)sprintf$/s) {
+    if ($src =~ /[A-Za-z0-9_]$/s) {
+        $src .= $block;
+    } elsif ($block =~ /^(_qp_|)sprintf$/s) {
         if ($blocks[0] =~ m{^
             (\s* \( \s*)
             ($re_expr)
