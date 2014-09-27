@@ -42,20 +42,46 @@ $re_expr = qr {
 my $src = join '', <STDIN>;
 
 # rewrite sn?printf
-$src =~ s{
-    (?<![A-Za-z0-9_])
-    (
-        (?:
-            (?:s|_qp_s)printf (\s* \( \s*) ($re_expr)
-            | (?:s|_qp_s)nprintf (\s* \( \s*) ($re_expr \s* , \s* $re_expr)
-        )
-        (\s*),
-        (\s*)
-        " ( (?:\\.|[^\\"])* ) "
-        ( (?: \s* , \s* $re_expr )* )
-        (\s* \))
-    )
-}{ rewrite($2 ? 'nck' : 'chk', $1, $2 ? $2 : $4, $2 ? $3 : $5, $6, $7, $8, $9, $10) }gxse;
+my @blocks = split /((?:_qp_|)sn?printf)/, $src;
+$src = '';
+while (@blocks) {
+    my $block = shift @blocks;
+    if ($src =~ /[A-Za-z0-9_]$/s) {
+        $src .= $block;
+    } elsif ($block =~ /^(_qp_|)sprintf$/s) {
+        if ($blocks[0] =~ m{^
+            (\s* \( \s*)
+            ($re_expr)
+            (\s*),
+            (\s*)
+            " ( (?:\\.|[^\\"])* ) "
+            ( (?: \s* , \s* $re_expr )* )
+            (\s* \))
+        }xs) {
+            $blocks[0] = $';
+            $src .= rewrite('nck', "$block$&", $1, $2, $3, $4, $5, $6, $7);
+        } else {
+            $src .= 'sprintf';
+        }
+    } elsif ($block =~ /^(_qp_|)snprintf$/s) {
+        if ($blocks[0] =~ m{^
+            (\s* \( \s*)
+            ($re_expr \s* , \s* $re_expr)
+            (\s*),
+            (\s*)
+            " ( (?:\\.|[^\\"])* ) "
+            ( (?: \s* , \s* $re_expr )* )
+            (\s* \))
+        }xs) {
+            $blocks[0] = $';
+            $src .= rewrite('chk', "$block$&", $1, $2, $3, $4, $5, $6, $7);
+        } else {
+            $src .= 'snprintf';
+        }
+    } else {
+        $src .= $block;
+    }
+}
 
 print $src;
 
