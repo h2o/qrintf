@@ -1,5 +1,7 @@
 PREFIX=/usr/local
 
+all:
+
 gen:
 	misc/gen-qrintf.h.pl
 
