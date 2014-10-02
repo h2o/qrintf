@@ -8,7 +8,7 @@ The reason why it is slow is because it parses the given format at run-time.
 
 qprinf is a preprocessor (and a set of runtime functions) that precompiles invocations of sprintf with constant format strings into specialized forms.
 
-The benchmark below shows the power of qprintf; converting IPv4 address to string becomes 8x faster when the preprocessor is applied to the source code.
+The benchmark below shows the power of qprintf; converting IPv4 address to string becomes 13x faster when the preprocessor is applied to the source code.
 
 ```
 $ gcc -O2 examples/ipv4addr.c
