@@ -12,7 +12,7 @@ int main(int argc, char **argv)
   }
 
   for (i = 0; i != 10000000; ++i) {
-    sprintf(buf, "%d.%d.%d.%d", (addr >> 24) & 0xff, (addr >> 16) & 0xff, (addr >> 8) & 0xff, addr & 0xff);
+    sprintf(buf, "%u.%u.%u.%u", (addr >> 24) & 0xff, (addr >> 16) & 0xff, (addr >> 8) & 0xff, addr & 0xff);
   }
 
   printf("result: %s\n", buf);
