@@ -50,6 +50,11 @@ static inline qrintf_t _qrintf_init(char *str)
   return ret;
 }
 
+static inline int _qrintf_finalize(qrintf_t ctx)
+{
+    return (int)ctx.off;
+}
+
 static inline qrintf_t _qrintf_c(qrintf_t ctx, int c)
 {
     ctx.str[ctx.off++] = c;

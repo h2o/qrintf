@@ -64,7 +64,7 @@ sub rewrite_sprintf {
         or return 's' . substr $orig, 1;
 
     # build the expr
-    my $expr = "_qrintf_init$start_brace$dst)$space_after_dst$space_before_fmt";
+    my $expr = "_qrintf_init($dst)$space_after_dst$space_before_fmt";
     for my $token (split /(%(?:(?:h||l|ll|z)u|(?:h||l|ll)d|s|c))/, $fmt) {
         if ($token =~ /^%(.*)$/) {
             $expr = "_qrintf_$1($expr" . shift(@values) . ")";
@@ -77,7 +77,7 @@ sub rewrite_sprintf {
             }
         }
     }
-    $expr = "((int)($expr).off$end_brace";
+    $expr = "_qrintf_finalize$start_brace$expr$end_brace";
 
     return $expr;
 }
