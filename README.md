@@ -40,7 +40,7 @@ Because sprintf is the bottleneck in some of my applications.  I plan to use it 
 
 __Q. Which conversion specifiers are supported?__
 
-As of now, only ```%c```, ```%d```, ```%s```, ```%u``` are optimized.  Invocations of sprintf using other conversion specifiers are not modified.
+As of now, only ```%c```, ```%d```, ```%s```, ```%u``` are optimized.  Invocations of sprintf using other conversion specifiers are left as is.
 
 __Q. What about snprintf?__
 
