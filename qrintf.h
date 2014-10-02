@@ -80,10 +80,7 @@ static inline qrintf_t _qrintf_s_len(qrintf_t ctx, const char *s, size_t l)
     { \
         char tmp[sizeof(QP_TOSTR(max)) - 1]; \
         size_t i = 0; \
-        if (v == 0) { \
-            ctx.str[ctx.off++] = '0'; \
-            return ctx; \
-        } else if (v < 0) { \
+        if (v < 0) { \
             /* cannot negate min */ \
             if (v == min) \
                 return _qrintf_s_len(ctx, QP_TOSTR(min), sizeof(QP_TOSTR(min)) - 1); \
@@ -109,10 +106,6 @@ _QP_SIGNED_F(long long, lld, LLONG_MIN, LLONG_MAX)
     { \
         char tmp[sizeof(QP_TOSTR(max)) - 1]; \
         size_t i = 0; \
-        if (v == 0) { \
-            ctx.str[ctx.off++] = '0'; \
-            return ctx; \
-        } \
         do { \
             tmp[i++] = '0' + v % 10; \
         } while ((v /= 10) != 0); \
@@ -133,10 +126,6 @@ _QP_UNSIGNED_F(size_t, zu, SIZE_MAX)
     { \
         char tmp[sizeof(type) * 2]; \
         size_t i = 0; \
-        if (v == 0) { \
-            ctx.str[ctx.off++] = '0'; \
-            return ctx; \
-        } \
         do { \
             tmp[i++] = (uc ? "0123456789ABCDEF" : "0123456789abcdef")[v & 0xf]; \
         } while ((v >>= 4) != 0); \
