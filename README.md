@@ -38,6 +38,10 @@ __Q. Which conversion specifiers are supported?__
 
 As of now, only ```%c```, ```%d```, ```%s```, ```%u``` are optimized.  Invocations of sprintf using other conversion specifiers are not modified.
 
-__Q. What about snprinf?__
+__Q. What about snprintf?__
 
 Patches are welcome.  sprintf has been the initial target simply because, in my case, stringification against preallocated buffer was among those that needed to be optimized.
+
+__Q. Shouldn't such feature be implemented in the compiler?__
+
+Agreed.
