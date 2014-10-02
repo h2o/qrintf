@@ -28,6 +28,7 @@ extern "C" {
 
 #include <limits.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 
 #undef sprintf
@@ -76,38 +77,58 @@ qrintf_t _qrintf_s_len(qrintf_t ctx, const char *s, size_t l)
     return ctx;
 }
 
-qrintf_t _qrintf_u(qrintf_t ctx, unsigned v)
-{
-    char tmp[sizeof(QP_TOSTR(UINT_MAX)) - 1];
-    size_t i = 0;
-
-    if (v == 0) {
-        ctx.str[ctx.off++] = '0';
-        return ctx;
+#define _QP_UNSIGNED_F(type, suffix, max) \
+    qrintf_t _qrintf_ ## suffix (qrintf_t ctx, type v) \
+    { \
+        char tmp[sizeof(QP_TOSTR(max)) - 1]; \
+        size_t i = 0; \
+        if (v == 0) { \
+            ctx.str[ctx.off++] = '0'; \
+            return ctx; \
+        } \
+        do { \
+            tmp[i++] = '0' + v % 10; \
+        } while ((v /= 10) != 0); \
+        do { \
+            ctx.str[ctx.off++] = tmp[--i]; \
+        } while (i != 0); \
+        return ctx; \
     }
 
-    do {
-        tmp[i++] = '0' + v % 10;
-    } while ((v /= 10) != 0);
-    do {
-        ctx.str[ctx.off++] = tmp[--i];
-    } while (i != 0);
+_QP_UNSIGNED_F(unsigned short, hu, USHRT_MAX)
+_QP_UNSIGNED_F(unsigned, u, UINT_MAX)
+_QP_UNSIGNED_F(unsigned long, lu, ULONG_MAX)
+_QP_UNSIGNED_F(unsigned long long, llu, ULONGLONG_MAX)
+_QP_UNSIGNED_F(size_t, zu, SIZE_MAX)
 
-    return ctx;
-}
-
-qrintf_t _qrintf_d(qrintf_t ctx, int v)
-{
-    if (v < 0) {
-        /* cannot negate INT_MIN */
-        if (v == INT_MIN)
-            return _qrintf_s_len(ctx, QP_TOSTR(INT_MIN), sizeof(QP_TOSTR(INT_MIN)) - 1);
-        ctx.str[ctx.off++] = '-';
-        v = -v;
+#define _QP_SIGNED_F(type, suffix, min, max) \
+    qrintf_t _qrintf_ ## suffix (qrintf_t ctx, type v) \
+    { \
+        char tmp[sizeof(QP_TOSTR(max)) - 1]; \
+        size_t i = 0; \
+        if (v == 0) { \
+            ctx.str[ctx.off++] = '0'; \
+            return ctx; \
+        } else if (v < 0) { \
+            /* cannot negate min */ \
+            if (v == min) \
+                return _qrintf_s_len(ctx, QP_TOSTR(min), sizeof(QP_TOSTR(min)) - 1); \
+            ctx.str[ctx.off++] = '-'; \
+            v = -v; \
+        } \
+        do { \
+            tmp[i++] = '0' + v % 10; \
+        } while ((v /= 10) != 0); \
+        do { \
+            ctx.str[ctx.off++] = tmp[--i]; \
+        } while (i != 0); \
+        return ctx; \
     }
 
-    return _qrintf_u(ctx, (unsigned)v);
-}
+_QP_SIGNED_F(short, hd, SHRT_MIN, SHRT_MAX)
+_QP_SIGNED_F(int, d, INT_MIN, INT_MAX)
+_QP_SIGNED_F(long, ld, LONG_MIN, LONG_MAX)
+_QP_SIGNED_F(long long, lld, LLONG_MIN, LLONG_MAX)
 
 #ifdef __cplusplus
 }
