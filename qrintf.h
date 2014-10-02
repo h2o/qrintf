@@ -42,14 +42,7 @@ typedef struct qrintf_t {
   size_t off;
 } qrintf_t;
 
-static inline qrintf_t _qrintf_init(char *str);
-static inline qrintf_t _qrintf_c(qrintf_t ctx, int c);
-static inline qrintf_t _qrintf_s(qrintf_t ctx, const char *s);
-static inline qrintf_t _qrintf_s_len(qrintf_t ctx, const char *s, size_t l);
-static inline qrintf_t _qrintf_u(qrintf_t ctx, unsigned v);
-static inline qrintf_t _qrintf_d(qrintf_t ctx, int v);
-
-qrintf_t _qrintf_init(char *str)
+static inline qrintf_t _qrintf_init(char *str)
 {
   struct qrintf_t ret;
   ret.str = str;
@@ -57,20 +50,20 @@ qrintf_t _qrintf_init(char *str)
   return ret;
 }
 
-qrintf_t _qrintf_c(qrintf_t ctx, int c)
+static inline qrintf_t _qrintf_c(qrintf_t ctx, int c)
 {
     ctx.str[ctx.off++] = c;
     return ctx;
 }
 
-qrintf_t _qrintf_s(qrintf_t ctx, const char *s)
+static inline qrintf_t _qrintf_s(qrintf_t ctx, const char *s)
 {
     for (; *s != '\0'; ++s)
         ctx.str[ctx.off++] = *s;
     return ctx;
 }
 
-qrintf_t _qrintf_s_len(qrintf_t ctx, const char *s, size_t l)
+static inline qrintf_t _qrintf_s_len(qrintf_t ctx, const char *s, size_t l)
 {
     for (; l != 0; --l)
         ctx.str[ctx.off++] = *s++;
@@ -78,7 +71,7 @@ qrintf_t _qrintf_s_len(qrintf_t ctx, const char *s, size_t l)
 }
 
 #define _QP_UNSIGNED_F(type, suffix, max) \
-    qrintf_t _qrintf_ ## suffix (qrintf_t ctx, type v) \
+    static inline qrintf_t _qrintf_ ## suffix (qrintf_t ctx, type v) \
     { \
         char tmp[sizeof(QP_TOSTR(max)) - 1]; \
         size_t i = 0; \
@@ -102,7 +95,7 @@ _QP_UNSIGNED_F(unsigned long long, llu, ULONGLONG_MAX)
 _QP_UNSIGNED_F(size_t, zu, SIZE_MAX)
 
 #define _QP_SIGNED_F(type, suffix, min, max) \
-    qrintf_t _qrintf_ ## suffix (qrintf_t ctx, type v) \
+    static inline qrintf_t _qrintf_ ## suffix (qrintf_t ctx, type v) \
     { \
         char tmp[sizeof(QP_TOSTR(max)) - 1]; \
         size_t i = 0; \
