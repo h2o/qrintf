@@ -1,4 +1,4 @@
-qrintf - compile-time specialization of sprintf
+qrintf - sprintf accelerator
 ======
 
 sprintf(3) is a great function for stringifying various kinds of data.
@@ -27,4 +27,17 @@ user	0m0.317s
 sys	0m0.002s
 ```
 
-Note: qprintf is going to be used in [H2O](https://github.com/kazuho/h2o), an optimized HTTP server/library implementation with support for HTTP/1.x, HTTP/2, websocket.
+FAQ
+---
+
+__Q. Why did you develop qprint?__
+
+Because sprintf is the bottleneck in some of my applications.  I plan to use it in [H2O](https://github.com/kazuho/h2o), an optimized HTTP server/library implementation with support for HTTP/1.x, HTTP/2, websocket.
+
+__Q. Which conversion specifiers are supported?__
+
+As of now, only ```%c```, ```%d```, ```%s```, ```%u``` are optimized.  Invocations of sprintf using other conversion specifiers are not modified.
+
+__Q. What about snprinf?__
+
+Patches are welcome.  sprintf has been the initial target simply because, in my case, stringification against preallocated buffer was among those that needed to be optimized.
