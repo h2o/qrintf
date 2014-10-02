@@ -6,9 +6,9 @@ The drawback is that it is slow.
 In certain applications, more than 10% of CPU time is consumed by the function.
 The reason why it is slow is because it parses the given format at run-time.
 
-qprinf is a preprocessor (and a set of runtime functions) that precompiles invocations of sprintf with constant format strings into specialized forms.
+qrintf is a preprocessor (and a set of runtime functions) that precompiles invocations of sprintf with constant format strings into specialized forms.
 
-The benchmark below shows the power of qprintf; converting IPv4 address to string becomes 13x faster when the preprocessor is applied to the source code.
+The benchmark below shows the power of qrintf; converting IPv4 address to string becomes 13x faster when the preprocessor is applied to the source code.
 
 ```
 $ gcc -O2 examples/ipv4addr.c
@@ -30,7 +30,11 @@ sys	0m0.003s
 FAQ
 ---
 
-__Q. Why did you develop qprint?__
+__Q. How do I use it?__
+
+Use `qrintf-gcc` in place of `gcc`.  `qrintf-gcc` is a wrapper of GCC that applies `qrintf-pp` (a filter that rewrites invocations of sprintf) during compilation.
+
+__Q. Why did you develop qrintf?__
 
 Because sprintf is the bottleneck in some of my applications.  I plan to use it in [H2O](https://github.com/kazuho/h2o), an optimized HTTP server/library implementation with support for HTTP/1.x, HTTP/2, websocket.
 
