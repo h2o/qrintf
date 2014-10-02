@@ -1,5 +1,7 @@
 #include <stdio.h>
-#include "qrintf.h"
+#if QPRINTF
+# include "qrintf.h"
+#endif
 
 int main(int argc, char **argv)
 {

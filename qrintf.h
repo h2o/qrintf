@@ -26,7 +26,15 @@
 extern "C" {
 #endif
 
+#include <limits.h>
 #include <stddef.h>
+#include <stdio.h>
+
+#undef sprintf
+#define sprintf qprintf
+
+#define QP_TOSTR(s) _QP_TOSTR(s)
+#define _QP_TOSTR(s) #s
 
 typedef struct qrintf_t {
   char *str;
@@ -37,8 +45,8 @@ static inline qrintf_t _qrintf_init(char *str);
 static inline qrintf_t _qrintf_c(qrintf_t ctx, int c);
 static inline qrintf_t _qrintf_s(qrintf_t ctx, const char *s);
 static inline qrintf_t _qrintf_s_len(qrintf_t ctx, const char *s, size_t l);
-qrintf_t _qrintf_u(qrintf_t ctx, unsigned v);
-qrintf_t _qrintf_d(qrintf_t ctx, int v);
+static inline qrintf_t _qrintf_u(qrintf_t ctx, unsigned v);
+static inline qrintf_t _qrintf_d(qrintf_t ctx, int v);
 
 qrintf_t _qrintf_init(char *str)
 {
@@ -66,6 +74,39 @@ qrintf_t _qrintf_s_len(qrintf_t ctx, const char *s, size_t l)
     for (; l != 0; --l)
         ctx.str[ctx.off++] = *s++;
     return ctx;
+}
+
+qrintf_t _qrintf_u(qrintf_t ctx, unsigned v)
+{
+    char tmp[sizeof(QP_TOSTR(UINT_MAX)) - 1];
+    size_t i = 0;
+
+    if (v == 0) {
+        ctx.str[ctx.off++] = '0';
+        return ctx;
+    }
+
+    do {
+        tmp[i++] = '0' + v % 10;
+    } while ((v /= 10) != 0);
+    do {
+        ctx.str[ctx.off++] = tmp[--i];
+    } while (i != 0);
+
+    return ctx;
+}
+
+qrintf_t _qrintf_d(qrintf_t ctx, int v)
+{
+    if (v < 0) {
+        /* cannot negate INT_MIN */
+        if (v == INT_MIN)
+            return _qrintf_s_len(ctx, QP_TOSTR(INT_MIN), sizeof(QP_TOSTR(INT_MIN)) - 1);
+        ctx.str[ctx.off++] = '-';
+        v = -v;
+    }
+
+    return _qrintf_u(ctx, (unsigned)v);
 }
 
 #ifdef __cplusplus
