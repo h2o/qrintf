@@ -38,7 +38,7 @@ __Q. Why did you develop qrintf?__
 
 Because sprintf is the bottleneck in some of my applications.  I plan to use it in [H2O](https://github.com/kazuho/h2o), an optimized HTTP server/library implementation with support for HTTP/1.x, HTTP/2, websocket.
 
-__Q. Which conversion specifiers are supported?__
+__Q. Is there a list of conversion specifiers that get optimized?__
 
 - `%c`
 - `%s`
