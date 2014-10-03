@@ -60,7 +60,6 @@ void test_simple()
 {
     CHECK("%c", 'Z');
     CHECK("%s", "abc");
-    CHECK("%.*s", (size_t)3, "abcde");
 
 #define CHECK_MULTI(type, conv, min, max) \
     CHECK(conv, (type)0); \
