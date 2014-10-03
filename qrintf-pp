@@ -59,10 +59,6 @@ sub rewrite_sprintf {
 
     $orig =~ s/^_qp_//; # _qp_sprintf => sprinf
 
-    # check if the only used formats are the ones that can be optimized
-    $fmt =~ m{^(%[dusc%]|[^%])*$}
-        or return $orig;
-
     # parse values
     my @values = ( $values =~ m{ ( \s* , \s* (?:$re_paren|[^),])+ ) }gxs )
         or return $orig;
@@ -75,6 +71,9 @@ sub rewrite_sprintf {
             $conv =~ s/i$/d/s; # convert %?i to %?d
             $expr = "_qrintf_$conv($expr" . shift(@values) . ")";
         } elsif ($token ne '') {
+            if ($token =~ /%[^%]/) {
+                return $orig;
+            }
             $token =~ s/%%/%/g;
             if (length $token == 1) {
                 $expr = qq{_qrintf_c($expr, '$token')};
