@@ -65,11 +65,17 @@ sub rewrite_sprintf {
 
     # build the expr
     my $expr = "_qrintf_init($dst)$space_after_dst$space_before_fmt";
-    for my $token (split /(%(?:(?:h||l|ll|z)u|(?:h||l|ll)[di]|s|c))/, $fmt) {
+    for my $token (split /(%(?:(?:h||l|ll|z)u|(?:h||l|ll)[di]|(?:\.\*|)s|c))/, $fmt) {
         if ($token =~ /^%(.*)$/) {
             my $conv = $1;
             $conv =~ s/i$/d/s; # convert %?i to %?d
-            $expr = "_qrintf_$conv($expr" . shift(@values) . ")";
+            if ($conv eq '.*s') {
+                my $s = shift @values;
+                my $len = shift @values;
+                $expr = "_qrintf_s_len($expr$len$s)";
+            } else {
+                $expr = "_qrintf_$conv($expr" . shift(@values) . ")";
+            }
         } elsif ($token ne '') {
             if ($token =~ /%[^%]/) {
                 return $orig;
