@@ -65,7 +65,7 @@ sub rewrite_sprintf {
 
     # build the expr
     my $expr = "_qrintf_init($dst)$space_after_dst$space_before_fmt";
-    for my $token (split /(%-?0?(?:[0-9]+|\*|)(?:(?:h||l|ll|z)u|(?:h||l|ll)[di]|s|c))/, $fmt) {
+    for my $token (split /(%-?0?(?:[0-9]+|\*|)(?:(?:h||l|ll|z)[uxX]|(?:h||l|ll)[di]|s|c))/, $fmt) {
         if ($token =~ /^%(.*)$/) {
             my ($left_adjust, $zero_pad, $width, $conv) = ($token =~ /^%(-?)(0?)([0-9]+|\*|)(.*)$/)
                 or die "failed to parse token: $token";
