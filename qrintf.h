@@ -34,6 +34,10 @@ extern "C" {
 #undef sprintf
 #define sprintf _qp_sprintf
 
+#if _QRINTF_COUNT_CALL
+extern size_t _qrintf_call_cnt;
+#endif
+
 typedef struct qrintf_t {
   char *str;
   size_t off;
@@ -41,10 +45,13 @@ typedef struct qrintf_t {
 
 static inline qrintf_t _qrintf_init(char *str)
 {
-  struct qrintf_t ret;
-  ret.str = str;
-  ret.off = 0;
-  return ret;
+    struct qrintf_t ret;
+    ret.str = str;
+    ret.off = 0;
+#if _QRINTF_COUNT_CALL
+    ++_qrintf_call_cnt;
+#endif
+    return ret;
 }
 
 static inline int _qrintf_finalize(qrintf_t ctx)

@@ -20,6 +20,7 @@
  * IN THE SOFTWARE.
  */
 
+#include <assert.h>
 #include <limits.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -34,12 +35,23 @@ static void test_composite(void);
 
 static int (*orig)(char *str, const char *fmt, ...) = sprintf;
 
+#if _QRINTF_COUNT_CALL
+size_t _qrintf_call_cnt;
+# define RESET_CALL_COUNT _qrintf_call_cnt = 0
+# define CHECK_CALL_COUNT assert(_qrintf_call_cnt == 1)
+#else
+# define RESET_CALL_COUNT
+# define CHECK_CALL_COUNT
+#endif
+
 #define CHECK(...) \
     do { \
         char pbuf[256], qbuf[256]; \
         int plen, qlen; \
+        RESET_CALL_COUNT; \
         plen = orig(pbuf, __VA_ARGS__); \
         qlen = sprintf(qbuf, __VA_ARGS__); \
+        CHECK_CALL_COUNT; \
         ok(plen == qlen); \
         ok(strcmp(pbuf, qbuf) == 0); \
     } while (0)
