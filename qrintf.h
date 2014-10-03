@@ -67,6 +67,14 @@ static inline qrintf_t _qrintf_c(qrintf_t ctx, int c)
     return ctx;
 }
 
+static inline qrintf_t _qrintf_width_c(qrintf_t ctx, int fill_ch, int width, int c)
+{
+    for (; 1 < width; --width)
+        ctx.str[ctx.off++] = fill_ch;
+    ctx.str[ctx.off++] = c;
+    return ctx;
+}
+
 static inline qrintf_t _qrintf_s(qrintf_t ctx, const char *s)
 {
     for (; *s != '\0'; ++s)

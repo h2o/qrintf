@@ -61,6 +61,8 @@ size_t _qrintf_call_cnt;
 void test_simple()
 {
     CHECK("%c", 'Z');
+    CHECK("%3c", 'Z');
+    CHECK("%03c", 'Z');
     CHECK("%s", "abc");
     CHECK("%3s", "a");
     CHECK("%3s", "abc");
