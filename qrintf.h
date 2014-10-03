@@ -34,9 +34,6 @@ extern "C" {
 #undef sprintf
 #define sprintf _qp_sprintf
 
-#define QP_TOSTR(s) _QP_TOSTR(s)
-#define _QP_TOSTR(s) #s
-
 typedef struct qrintf_t {
   char *str;
   size_t off;
@@ -79,14 +76,16 @@ static inline qrintf_t _qrintf_s_len(qrintf_t ctx, const char *s, size_t l)
 #define _QP_SIGNED_F(type, suffix, min, max) \
     static inline qrintf_t _qrintf_ ## suffix (qrintf_t ctx, type v) \
     { \
-        char tmp[sizeof(QP_TOSTR(max)) - 1]; \
+        char tmp[sizeof(type) * 3]; \
         size_t i = 0; \
         if (v < 0) { \
-            /* cannot negate min */ \
-            if (v == min) \
-                return _qrintf_s_len(ctx, QP_TOSTR(min), sizeof(QP_TOSTR(min)) - 1); \
             ctx.str[ctx.off++] = '-'; \
-            v = -v; \
+            if (v == min) { \
+                tmp[i++] = '1' + max % 10; \
+                v = max / 10; \
+            } else { \
+                v = -v; \
+            } \
         } \
         do { \
             tmp[i++] = '0' + v % 10; \
@@ -105,7 +104,7 @@ _QP_SIGNED_F(long long, lld, LLONG_MIN, LLONG_MAX)
 #define _QP_UNSIGNED_F(type, suffix, max) \
     static inline qrintf_t _qrintf_ ## suffix (qrintf_t ctx, type v) \
     { \
-        char tmp[sizeof(QP_TOSTR(max)) - 1]; \
+        char tmp[sizeof(type) * 3]; \
         size_t i = 0; \
         do { \
             tmp[i++] = '0' + v % 10; \
