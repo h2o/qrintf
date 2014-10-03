@@ -62,6 +62,12 @@ void test_simple()
 {
     CHECK("%c", 'Z');
     CHECK("%s", "abc");
+    CHECK("%3s", "a");
+    CHECK("%3s", "abc");
+    CHECK("%3s", "abcde");
+    CHECK("%03s", "a");
+    CHECK("%03s", "abc");
+    CHECK("%03s", "abcde");
     CHECK("%*s", (size_t)3, "a");
     CHECK("%*s", (size_t)3, "abc");
     CHECK("%*s", (size_t)3, "abcde");
@@ -100,6 +106,13 @@ void test_simple()
     CHECK_MULTI(unsigned long, "%lX", 0, ULONG_MAX);
     CHECK_MULTI(unsigned long long, "%llX", 0, ULLONG_MAX);
     CHECK_MULTI(size_t, "%zX", 0, SIZE_MAX);
+
+    CHECK_MULTI(int, "%7d", INT_MIN, INT_MAX);
+    CHECK_MULTI(int, "%07d", INT_MIN, INT_MAX);
+    CHECK_MULTI(unsigned, "%7u", 0, UINT_MAX);
+    CHECK_MULTI(unsigned, "%07u", 0, UINT_MAX);
+    CHECK_MULTI(unsigned, "%7x", 0, UINT_MAX);
+    CHECK_MULTI(unsigned, "%07x", 0, UINT_MAX);
 }
 
 void test_composite()

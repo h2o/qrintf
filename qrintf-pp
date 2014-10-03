@@ -77,10 +77,10 @@ sub rewrite_sprintf {
                     $width =~ s/^0//g; # remove preceeding zeros so that it would not be considered as an octal
                     $width = ", $width";
                 }
-                my $pad_ch = $zero_pad ? '0' : ' ';
+                my $pad_ch = $zero_pad ne '' ? '0' : ' ';
                 $expr = "_qrintf_width_$conv($expr, '$pad_ch'$width" . shift(@values) . ")";
             } else {
-            $expr = "_qrintf_$conv($expr" . shift(@values) . ")";
+                $expr = "_qrintf_$conv($expr" . shift(@values) . ")";
             }
         } elsif ($token ne '') {
             if ($token =~ /%[^%]/) {

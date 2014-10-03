@@ -77,10 +77,8 @@ static inline qrintf_t _qrintf_s(qrintf_t ctx, const char *s)
 static inline qrintf_t _qrintf_width_s(qrintf_t ctx, int fill_ch, int width, const char *s)
 {
     int slen = strlen(s);
-    while (slen < width) {
+    for (; slen < width; --width)
         ctx.str[ctx.off++] = fill_ch;
-        --width;
-    }
     for (; slen != 0; --slen)
         ctx.str[ctx.off++] = *s++;
     return ctx;
@@ -94,25 +92,51 @@ static inline qrintf_t _qrintf_s_len(qrintf_t ctx, const char *s, size_t l)
 }
 
 #define _QP_SIGNED_F(type, suffix, min, max) \
-    static inline qrintf_t _qrintf_ ## suffix (qrintf_t ctx, type v) \
+    static inline int _qrintf_ ## suffix ## _core(char *buf, type v) \
     { \
-        char tmp[sizeof(type) * 3]; \
-        size_t i = 0; \
+        int i = 0; \
         if (v < 0) { \
-            ctx.str[ctx.off++] = '-'; \
             if (v == min) { \
-                tmp[i++] = '1' + max % 10; \
+                buf[i++] = '1' + max % 10; \
                 v = max / 10; \
             } else { \
                 v = -v; \
             } \
         } \
         do { \
-            tmp[i++] = '0' + v % 10; \
+            buf[i++] = '0' + v % 10; \
         } while ((v /= 10) != 0); \
+        return i; \
+    } \
+    static inline qrintf_t _qrintf_ ## suffix (qrintf_t ctx, type v) \
+    { \
+        char buf[sizeof(type) * 3]; \
+        int len; \
+        if (v < 0) \
+            ctx.str[ctx.off++] = '-'; \
+        len = _qrintf_ ## suffix ## _core(buf, v); \
         do { \
-            ctx.str[ctx.off++] = tmp[--i]; \
-        } while (i != 0); \
+            ctx.str[ctx.off++] = buf[--len]; \
+        } while (len != 0); \
+        return ctx; \
+    } \
+    static inline qrintf_t _qrintf_width_ ## suffix (qrintf_t ctx, int fill_ch, int width, type v) \
+    { \
+        char buf[sizeof(type) * 3 + 1]; \
+        int len = _qrintf_ ## suffix ## _core(buf, v); \
+        if (v < 0) { \
+            if (fill_ch == ' ') { \
+                buf[len++] = '-'; \
+            } else { \
+                ctx.str[ctx.off++] = '-'; \
+                --width; \
+            } \
+        } \
+        for (; len < width; --width) \
+            ctx.str[ctx.off++] = fill_ch; \
+        do { \
+            ctx.str[ctx.off++] = buf[--len]; \
+        } while (len != 0); \
         return ctx; \
     }
 
@@ -122,17 +146,23 @@ _QP_SIGNED_F(long, ld, LONG_MIN, LONG_MAX)
 _QP_SIGNED_F(long long, lld, LLONG_MIN, LLONG_MAX)
 
 #define _QP_UNSIGNED_F(type, suffix, max) \
-    static inline qrintf_t _qrintf_ ## suffix (qrintf_t ctx, type v) \
+    static inline qrintf_t _qrintf_width_ ## suffix (qrintf_t ctx, int fill_ch, int width, type v) \
     { \
         char tmp[sizeof(type) * 3]; \
-        size_t i = 0; \
+        int len = 0; \
         do { \
-            tmp[i++] = '0' + v % 10; \
+            tmp[len++] = '0' + v % 10; \
         } while ((v /= 10) != 0); \
+        for (; len < width; --width) \
+            ctx.str[ctx.off++] = fill_ch; \
         do { \
-            ctx.str[ctx.off++] = tmp[--i]; \
-        } while (i != 0); \
+            ctx.str[ctx.off++] = tmp[--len]; \
+        } while (len != 0); \
         return ctx; \
+    } \
+    static inline qrintf_t _qrintf_ ## suffix (qrintf_t ctx, type v) \
+    { \
+        return _qrintf_width_ ##suffix (ctx, 0, 0, v); \
     }
 
 _QP_UNSIGNED_F(unsigned short, hu, USHRT_MAX)
@@ -142,17 +172,23 @@ _QP_UNSIGNED_F(unsigned long long, llu, ULLONG_MAX)
 _QP_UNSIGNED_F(size_t, zu, SIZE_MAX)
 
 #define _QP_HEX_F(type, suffix, uc) \
-    static inline qrintf_t _qrintf_ ## suffix (qrintf_t ctx, type v) \
+    static inline qrintf_t _qrintf_width_ ## suffix (qrintf_t ctx, int fill_ch, int width, type v) \
     { \
         char tmp[sizeof(type) * 2]; \
-        size_t i = 0; \
+        int len = 0; \
         do { \
-            tmp[i++] = (uc ? "0123456789ABCDEF" : "0123456789abcdef")[v & 0xf]; \
+            tmp[len++] = (uc ? "0123456789ABCDEF" : "0123456789abcdef")[v & 0xf]; \
         } while ((v >>= 4) != 0); \
+        for (; len < width; --width) \
+            ctx.str[ctx.off++] = fill_ch; \
         do { \
-            ctx.str[ctx.off++] = tmp[--i]; \
-        } while (i != 0); \
+            ctx.str[ctx.off++] = tmp[--len]; \
+        } while (len != 0); \
         return ctx; \
+    } \
+    static inline qrintf_t _qrintf_ ## suffix (qrintf_t ctx, type v) \
+    { \
+        return _qrintf_width_ ##suffix (ctx, 0, 0, v); \
     }
 
 _QP_HEX_F(unsigned short, hx, 0)
