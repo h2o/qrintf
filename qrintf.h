@@ -30,6 +30,7 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 #undef sprintf
 #define sprintf _qp_sprintf
@@ -70,6 +71,18 @@ static inline qrintf_t _qrintf_s(qrintf_t ctx, const char *s)
 {
     for (; *s != '\0'; ++s)
         ctx.str[ctx.off++] = *s;
+    return ctx;
+}
+
+static inline qrintf_t _qrintf_width_s(qrintf_t ctx, int fill_ch, int width, const char *s)
+{
+    int slen = strlen(s);
+    while (slen < width) {
+        ctx.str[ctx.off++] = fill_ch;
+        --width;
+    }
+    for (; slen != 0; --slen)
+        ctx.str[ctx.off++] = *s++;
     return ctx;
 }
 
