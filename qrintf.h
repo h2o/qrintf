@@ -52,6 +52,7 @@ static inline qrintf_t _qrintf_init(char *str)
 
 static inline int _qrintf_finalize(qrintf_t ctx)
 {
+    ctx.str[ctx.off] = '\0';
     return (int)ctx.off;
 }
 
