@@ -32,7 +32,7 @@ extern "C" {
 #include <stdio.h>
 
 #undef sprintf
-#define sprintf qprintf
+#define sprintf _qp_sprintf
 
 #define QP_TOSTR(s) _QP_TOSTR(s)
 #define _QP_TOSTR(s) #s

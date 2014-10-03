@@ -39,7 +39,7 @@ my $src = join '', <STDIN>;
 $src =~ s{
     (?:(?<=[^A-Za-z0-9_])|^)
     (
-        [sq]printf
+        (?:s|_qp_s)printf
         (\s* \( \s*)
         ($re_arg)
         (\s*),
@@ -47,21 +47,25 @@ $src =~ s{
         " ( (?:\\"|[^"]*)* ) "
         ( (?: \s* , \s* (?:$re_paren|[^),])+ )* )
         (\s* \))
+    )|(
+        _qp_sprintf(?![A-Za-z0-9_])
     )
-}{ rewrite_sprintf($1, $2, $3, $4, $5, $6, $7, $8) }gxse;
+}{ $9 ? "sprintf" : rewrite_sprintf($1, $2, $3, $4, $5, $6, $7, $8) }gxse;
 
 print $src;
 
 sub rewrite_sprintf {
     my ($orig, $start_brace, $dst, $space_after_dst, $space_before_fmt, $fmt, $values, $end_brace) = @_;
 
+    $orig =~ s/^_qp_//; # _qp_sprintf => sprinf
+
     # check if the only used formats are the ones that can be optimized
     $fmt =~ m{^(%[dusc%]|[^%])*$}
-        or return 's' . substr $orig, 1;
+        or return $orig;
 
     # parse values
     my @values = ( $values =~ m{ ( \s* , \s* (?:$re_paren|[^),])+ ) }gxs )
-        or return 's' . substr $orig, 1;
+        or return $orig;
 
     # build the expr
     my $expr = "_qrintf_init($dst)$space_after_dst$space_before_fmt";
