@@ -51,6 +51,12 @@ __Q. What about snprintf?__
 
 Patches are welcome.  sprintf has been the initial target simply because, in my case, stringification against preallocated buffer was among those that needed to be optimized.
 
+__Q. How do I run the tests?__
+
+```
+./qrintf-gcc -D_QRINTF_COUNT_CALL=1 -Wall -g t/test.c && ./a.out
+```
+
 __Q. Shouldn't such feature be implemented in the compiler?__
 
 Agreed.
