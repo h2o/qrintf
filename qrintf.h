@@ -179,19 +179,19 @@ _QP_UNSIGNED_F(unsigned long, lu, ULONG_MAX)
 _QP_UNSIGNED_F(unsigned long long, llu, ULLONG_MAX)
 _QP_UNSIGNED_F(size_t, zu, SIZE_MAX)
 
+#define _QP_ALIGN(x,n)  (((x)+((n)-1))&(~((n)-1)))
+
 #define _QP_HEX_F(type, suffix, uc) \
     static inline qrintf_t _qrintf_width_ ## suffix (qrintf_t ctx, int fill_ch, int width, type v) \
     { \
-        char tmp[sizeof(type) * 2]; \
-        int len = 0; \
-        do { \
-            tmp[len++] = (uc ? "0123456789ABCDEF" : "0123456789abcdef")[v & 0xf]; \
-        } while ((v >>= 4) != 0); \
+        int i = (v) ? _QP_ALIGN(sizeof(long) * 8 - __builtin_clzl(v), 4) : 4; \
+        int len = i / 4; \
+        i -= 4; \
         for (; len < width; --width) \
             ctx.str[ctx.off++] = fill_ch; \
         do { \
-            ctx.str[ctx.off++] = tmp[--len]; \
-        } while (len != 0); \
+            ctx.str[ctx.off++] = (uc ? "0123456789ABCDEF" : "0123456789abcdef")[(v >> i) & 0xf]; \
+        } while ((i -= 4) >= 0); \
         return ctx; \
     } \
     static inline qrintf_t _qrintf_ ## suffix (qrintf_t ctx, type v) \
@@ -210,6 +210,7 @@ _QP_HEX_F(unsigned long long, llX, 1)
 _QP_HEX_F(size_t, zx, 0)
 _QP_HEX_F(size_t, zX, 1)
 
+#undef _QP_ALIGN
 #ifdef __cplusplus
 }
 #endif
