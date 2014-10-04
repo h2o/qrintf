@@ -54,6 +54,15 @@ $src =~ s{
 
 print $src;
 
+sub _append_literal {
+    my ($expr, $literal) = @_;
+    return $expr
+        if length $literal == 0;
+    return "_qrintf_c($expr, '$literal')"
+        if length $literal == 1;
+    return "_qrintf_s_len($expr, \"$literal\", sizeof(\"$literal\") - 1)";
+}
+
 sub rewrite_sprintf {
     my ($orig, $start_brace, $dst, $space_after_dst, $space_before_fmt, $fmt, $values, $end_brace) = @_;
 
@@ -65,10 +74,12 @@ sub rewrite_sprintf {
 
     # build the expr
     my $expr = "_qrintf_init($dst)$space_after_dst$space_before_fmt";
-    for my $token (split /(%-?0?(?:[0-9]+|\*|)(?:(?:h||l|ll|z)[uxX]|(?:h||l|ll)[di]|s|c))/, $fmt) {
-        if ($token =~ /^%(.*)$/) {
-            my ($left_adjust, $zero_pad, $width, $conv) = ($token =~ /^%(-?)(0?)([0-9]+|\*|)(.*)$/)
-                or die "failed to parse token: $token";
+    my $literal = '';
+    for my $token (split /(%(?:%|-?0?(?:[0-9]+|\*|)(?:(?:h||l|ll|z)[uxX]|(?:h||l|ll)[di]|s|c)))/, $fmt) {
+        if ($token =~ /^%(-?)(0?)([0-9]+|\*|)((?:h||l|ll|z)[uxX]|(?:h||l|ll)[di]|s|c)$/) {
+            my ($left_adjust, $zero_pad, $width, $conv) = ($1, $2, $3, $4);
+            $expr = _append_literal($expr, $literal);
+            $literal = '';
             $conv =~ s/i$/d/s; # convert %?i to %?d
             if ($width ne '') {
                 if ($width eq '*') {
@@ -82,18 +93,12 @@ sub rewrite_sprintf {
             } else {
                 $expr = "_qrintf_$conv($expr" . shift(@values) . ")";
             }
-        } elsif ($token ne '') {
-            if ($token =~ /%[^%]/) {
-                return $orig;
-            }
-            $token =~ s/%%/%/g;
-            if (length $token == 1) {
-                $expr = qq{_qrintf_c($expr, '$token')};
-            } else {
-                $expr = qq{_qrintf_s_len($expr, "$token", sizeof("$token") - 1)};
-            }
+        } else {
+            $token =~ s/%(.?)/return $orig unless $1 eq '%'; $1/eg;
+            $literal .= $token;
         }
     }
+    $expr = _append_literal($expr, $literal);
     $expr = "_qrintf_finalize$start_brace$expr$end_brace";
 
     return $expr;
