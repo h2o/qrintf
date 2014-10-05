@@ -74,6 +74,9 @@ void test_simple()
     CHECK("%*s", (size_t)3, "abc");
     CHECK("%*s", (size_t)3, "abcde");
     CHECK("%x_", 1);
+    CHECK("%d%%", 10);
+    CHECK("%%%d", 10);
+    CHECK("%%d%d", 10);
 
 #define CHECK_MULTI(type, conv, min, max) \
     CHECK(conv, (type)0); \
