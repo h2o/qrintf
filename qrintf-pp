@@ -23,16 +23,16 @@
 use strict;
 use warnings;
 
-my $re_paren;
-$re_paren = qr {
-    \(
+my $re_expr;
+$re_expr = qr {
     (?:
-        (?>[^\(\)]+)
-        | (??{ $re_paren })
-    )*
-    \)
+        /\*.*?\*/
+        | //[^\n]*\n?
+        | " (?:\\"|[^"]*)* " # FIXME handle \\"
+        | \( (??{ $re_expr }) (?: \s* , \s* (??{ $re_expr }) )* \)
+        | [^,()]*
+    )+
 }xs;
-my $re_arg = qr { (?:$re_paren|[^,]*) }xs;
 
 my $src = join '', <STDIN>;
 
@@ -41,11 +41,11 @@ $src =~ s{
     (
         (?:s|_qp_s)printf
         (\s* \( \s*)
-        ($re_arg)
+        ($re_expr)
         (\s*),
         (\s*)
         " ( (?:\\"|[^"]*)* ) "
-        ( (?: \s* , \s* (?:$re_paren|[^),])+ )* )
+        ( (?: \s* , \s* $re_expr )* )
         (\s* \))
     )|(
         _qp_sprintf(?![A-Za-z0-9_])
@@ -69,7 +69,7 @@ sub rewrite_sprintf {
     $orig =~ s/^_qp_//; # _qp_sprintf => sprinf
 
     # parse values
-    my @values = ( $values =~ m{ ( \s* , \s* (?:$re_paren|[^),])+ ) }gxs )
+    my @values = ( $values =~ m{ ( \s* , \s* $re_expr ) }gxs )
         or return $orig;
 
     # build the expr

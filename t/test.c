@@ -78,6 +78,10 @@ void test_simple()
     CHECK("%%%d", 10);
     CHECK("%%d%d", 10);
 
+    CHECK("%s%s", "a,b", "c");
+    CHECK("%s%d", "hi" /*hmm */, // test
+        3);
+
 #define CHECK_MULTI(type, conv, min, max) \
     CHECK(conv, (type)0); \
     CHECK(conv, (type)12345); \
