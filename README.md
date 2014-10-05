@@ -20,7 +20,7 @@ result: 73.150.2.210
 real	0m2.602s
 user	0m2.598s
 sys	0m0.003s
-$ ./qrintf-gcc -O2 examples/ipv4addr.c
+$ bin/qrintf-gcc -O2 examples/ipv4addr.c
 $ time ./a.out 1234567890
 result: 73.150.2.210
 

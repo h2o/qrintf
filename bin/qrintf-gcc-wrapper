@@ -13,7 +13,7 @@ my $pwd = dirname($0);
 
 # invoke cpp
 my ($cpp_cmd, @cpp_args) = @ARGV;
-system($cpp_cmd, '-DQRINTF=1', '-include', "$pwd/qrintf.h", @cpp_args) == 0
+system($cpp_cmd, '-DQRINTF=1', '-include', "$pwd/../share/qrintf/qrintf.h", @cpp_args) == 0
     or exit $?;
 
 # read the source file
