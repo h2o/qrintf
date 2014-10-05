@@ -1,6 +1,8 @@
 qrintf - sprintf accelerator
 ======
 
+[![Build Status](https://travis-ci.org/kazuho/qrintf.svg?branch=master)](https://travis-ci.org/kazuho/qrintf)
+
 sprintf(3) is a great function for stringifying various kinds of data.
 The drawback is that it is slow.
 In certain applications, more than 10% of CPU time is consumed by the function.
