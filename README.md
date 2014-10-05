@@ -58,8 +58,10 @@ Patches are welcome.  sprintf has been the initial target simply because, in my 
 __Q. How do I run the tests?__
 
 ```
-./qrintf-gcc -D_QRINTF_COUNT_CALL=1 -Wall -g t/test.c && ./a.out
+make test
 ```
+
+note: The test invokes `qrintf-gcc` which in turn invokes `gcc`.  So GCC should exist within the PATH.  `Clang-gcc` is not supported.
 
 __Q. Shouldn't such feature be implemented in the compiler?__
 
