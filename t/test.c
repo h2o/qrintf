@@ -62,12 +62,10 @@ void test_simple()
 {
     CHECK("%c", 'Z');
     CHECK("%3c", 'Z');
-    CHECK("%03c", 'Z');
     CHECK("%s", "abc");
     CHECK("%3s", "a");
     CHECK("%3s", "abc");
     CHECK("%3s", "abcde");
-    CHECK("%03s", "a");
     CHECK("%03s", "abc");
     CHECK("%03s", "abcde");
     CHECK("%*s", (size_t)3, "a");
