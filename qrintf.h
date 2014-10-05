@@ -179,18 +179,30 @@ _QP_UNSIGNED_F(unsigned long, lu, ULONG_MAX)
 _QP_UNSIGNED_F(unsigned long long, llu, ULLONG_MAX)
 _QP_UNSIGNED_F(size_t, zu, SIZE_MAX)
 
+#define _QP_ALIGN(x,n)  (((x)+((n)-1))&(~((n)-1)))
+
 #define _QP_HEX_F(type, suffix, uc) \
     static inline qrintf_t _qrintf_width_ ## suffix (qrintf_t ctx, int fill_ch, int width, type v) \
     { \
-        char tmp[sizeof(type) * 2]; \
-        int len = 0; \
-        do { \
-            tmp[len++] = (uc ? "0123456789ABCDEF" : "0123456789abcdef")[v & 0xf]; \
-        } while ((v >>= 4) != 0); \
+        int len; \
+        if (v != 0) { \
+            int bits; \
+            if (sizeof(type) == sizeof(unsigned long long)) \
+                bits = sizeof(type) * 8 - __builtin_clzll(v); \
+            else if (sizeof(type) == sizeof(unsigned long)) \
+                bits = sizeof(type) * 8 - __builtin_clzl(v); \
+            else \
+                bits = sizeof(int) * 8 - __builtin_clz(v); \
+            len = (bits + 3) >> 2; \
+        } else { \
+            len = 1; \
+        } \
         for (; len < width; --width) \
             ctx.str[ctx.off++] = fill_ch; \
+        len *= 4; \
         do { \
-            ctx.str[ctx.off++] = tmp[--len]; \
+            len -= 4; \
+            ctx.str[ctx.off++] = (uc ? "0123456789ABCDEF" : "0123456789abcdef")[(v >> len) & 0xf]; \
         } while (len != 0); \
         return ctx; \
     } \
@@ -210,6 +222,7 @@ _QP_HEX_F(unsigned long long, llX, 1)
 _QP_HEX_F(size_t, zx, 0)
 _QP_HEX_F(size_t, zX, 1)
 
+#undef _QP_ALIGN
 #ifdef __cplusplus
 }
 #endif
