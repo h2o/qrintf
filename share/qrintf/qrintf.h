@@ -1177,3 +1177,5 @@ static inline qrintf_chk_t _qrintf_chk_width_zx(qrintf_chk_t ctx, int fill_ch, i
 #endif
 
 #endif
+
+/* QRINTF_MARK_END_OF_HEADER */

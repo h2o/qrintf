@@ -40,6 +40,11 @@ $re_expr = qr {
 }xs;
 
 my $src = join '', <STDIN>;
+my $src_prefix = '';
+if ($src =~ m{/\* QRINTF_MARK_END_OF_HEADER \*/}s) {
+    $src_prefix = $`;
+    $src = $';
+}
 
 # rewrite sprintf
 $src =~ s{
@@ -75,7 +80,7 @@ $src =~ s{
     )
 }{ $9 ? "snprintf" : rewrite('chk', $1, $2, $3, $4, $5, $6, $7, $8) }gxse;
 
-print $src;
+print "$src_prefix$src";
 
 sub _append_literal {
     my ($check, $expr, $literal) = @_;

@@ -332,5 +332,7 @@ static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?>_width_s(qrintf_<?= $c
 #endif
 
 #endif
+
+/* QRINTF_MARK_END_OF_HEADER */
 EOT
 close $fh;
