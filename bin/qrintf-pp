@@ -96,9 +96,14 @@ sub rewrite {
     for my $token (split /(%(?:%|-?0?(?:[0-9]+|\*|)(?:(?:h||l|ll|z)[uxX]|(?:h||l|ll)[di]|s|c)))/, $fmt) {
         if ($token =~ /^%(-?)(0?)([0-9]+|\*|)((?:h||l|ll|z)[uxX]|(?:h||l|ll)[di]|s|c)$/) {
             my ($left_adjust, $zero_pad, $width, $conv) = ($1, $2, $3, $4);
+            my $extra = '';
             $expr = _append_literal($check, $expr, $literal);
             $literal = '';
             $conv =~ s/i$/d/s; # convert %?i to %?d
+            if ($conv =~ /([xX])$/) {
+                $extra = $1 eq 'X' ? ', "0123456789ABCDEF"' : ', "0123456789abcdef"';
+                $conv =~ s/X$/x/;
+            }
             if ($width ne '') {
                 if ($width eq '*') {
                     $width = shift @values;
@@ -107,9 +112,9 @@ sub rewrite {
                     $width = ", $width";
                 }
                 my $pad_ch = $zero_pad ne '' ? '0' : ' ';
-                $expr = "_qrintf_${check}_width_$conv($expr, '$pad_ch'$width" . shift(@values) . ")";
+                $expr = "_qrintf_${check}_width_$conv($expr, '$pad_ch'$width" . shift(@values) . "$extra)";
             } else {
-                $expr = "_qrintf_${check}_$conv($expr" . shift(@values) . ")";
+                $expr = "_qrintf_${check}_$conv($expr" . shift(@values) . "$extra)";
             }
         } else {
             $token =~ s/%(.?)/return $orig unless $1 eq '%'; $1/eg;

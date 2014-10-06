@@ -474,7 +474,7 @@ static inline qrintf_nck_t _qrintf_nck_width_zu(qrintf_nck_t ctx, int fill_ch, i
     return _qrintf_nck_s_len(ctx, p, len);
 }
 
-static inline qrintf_nck_t _qrintf_nck_hx(qrintf_nck_t ctx, unsigned short v)
+static inline qrintf_nck_t _qrintf_nck_hx(qrintf_nck_t ctx, unsigned short v, const char *chars)
 {
     int len;
     if (v != 0) {
@@ -492,12 +492,12 @@ static inline qrintf_nck_t _qrintf_nck_hx(qrintf_nck_t ctx, unsigned short v)
     len *= 4;
     do {
         len -= 4;
-        ctx.str[ctx.off++] = ("0123456789abcdef")[(v >> len) & 0xf];
+        ctx.str[ctx.off++] = chars[(v >> len) & 0xf];
     } while (len != 0);
     return ctx;
 }
 
-static inline qrintf_nck_t _qrintf_nck_x(qrintf_nck_t ctx, unsigned v)
+static inline qrintf_nck_t _qrintf_nck_x(qrintf_nck_t ctx, unsigned v, const char *chars)
 {
     int len;
     if (v != 0) {
@@ -515,12 +515,12 @@ static inline qrintf_nck_t _qrintf_nck_x(qrintf_nck_t ctx, unsigned v)
     len *= 4;
     do {
         len -= 4;
-        ctx.str[ctx.off++] = ("0123456789abcdef")[(v >> len) & 0xf];
+        ctx.str[ctx.off++] = chars[(v >> len) & 0xf];
     } while (len != 0);
     return ctx;
 }
 
-static inline qrintf_nck_t _qrintf_nck_lx(qrintf_nck_t ctx, unsigned long v)
+static inline qrintf_nck_t _qrintf_nck_lx(qrintf_nck_t ctx, unsigned long v, const char *chars)
 {
     int len;
     if (v != 0) {
@@ -538,12 +538,12 @@ static inline qrintf_nck_t _qrintf_nck_lx(qrintf_nck_t ctx, unsigned long v)
     len *= 4;
     do {
         len -= 4;
-        ctx.str[ctx.off++] = ("0123456789abcdef")[(v >> len) & 0xf];
+        ctx.str[ctx.off++] = chars[(v >> len) & 0xf];
     } while (len != 0);
     return ctx;
 }
 
-static inline qrintf_nck_t _qrintf_nck_llx(qrintf_nck_t ctx, unsigned long long v)
+static inline qrintf_nck_t _qrintf_nck_llx(qrintf_nck_t ctx, unsigned long long v, const char *chars)
 {
     int len;
     if (v != 0) {
@@ -561,12 +561,12 @@ static inline qrintf_nck_t _qrintf_nck_llx(qrintf_nck_t ctx, unsigned long long 
     len *= 4;
     do {
         len -= 4;
-        ctx.str[ctx.off++] = ("0123456789abcdef")[(v >> len) & 0xf];
+        ctx.str[ctx.off++] = chars[(v >> len) & 0xf];
     } while (len != 0);
     return ctx;
 }
 
-static inline qrintf_nck_t _qrintf_nck_zx(qrintf_nck_t ctx, size_t v)
+static inline qrintf_nck_t _qrintf_nck_zx(qrintf_nck_t ctx, size_t v, const char *chars)
 {
     int len;
     if (v != 0) {
@@ -584,247 +584,12 @@ static inline qrintf_nck_t _qrintf_nck_zx(qrintf_nck_t ctx, size_t v)
     len *= 4;
     do {
         len -= 4;
-        ctx.str[ctx.off++] = ("0123456789abcdef")[(v >> len) & 0xf];
+        ctx.str[ctx.off++] = chars[(v >> len) & 0xf];
     } while (len != 0);
     return ctx;
 }
 
-static inline qrintf_nck_t _qrintf_nck_width_hx(qrintf_nck_t ctx, int fill_ch, int width, unsigned short v)
-{
-    int len;
-    if (v != 0) {
-        int bits;
-        if (sizeof(unsigned short) == sizeof(unsigned long long))
-            bits = sizeof(unsigned long long) * 8 - __builtin_clzll(v);
-        else if (sizeof(unsigned short) == sizeof(unsigned long))
-            bits = sizeof(unsigned long) * 8 - __builtin_clzl(v);
-        else
-            bits = sizeof(int) * 8 - __builtin_clz(v);
-        len = (bits + 3) >> 2;
-    } else {
-        len = 1;
-    }
-    ctx = _qrintf_nck_fill(ctx, fill_ch, len, width);
-    len *= 4;
-    do {
-        len -= 4;
-        ctx.str[ctx.off++] = ("0123456789abcdef")[(v >> len) & 0xf];
-    } while (len != 0);
-    return ctx;
-}
-
-static inline qrintf_nck_t _qrintf_nck_width_x(qrintf_nck_t ctx, int fill_ch, int width, unsigned v)
-{
-    int len;
-    if (v != 0) {
-        int bits;
-        if (sizeof(unsigned) == sizeof(unsigned long long))
-            bits = sizeof(unsigned long long) * 8 - __builtin_clzll(v);
-        else if (sizeof(unsigned) == sizeof(unsigned long))
-            bits = sizeof(unsigned long) * 8 - __builtin_clzl(v);
-        else
-            bits = sizeof(int) * 8 - __builtin_clz(v);
-        len = (bits + 3) >> 2;
-    } else {
-        len = 1;
-    }
-    ctx = _qrintf_nck_fill(ctx, fill_ch, len, width);
-    len *= 4;
-    do {
-        len -= 4;
-        ctx.str[ctx.off++] = ("0123456789abcdef")[(v >> len) & 0xf];
-    } while (len != 0);
-    return ctx;
-}
-
-static inline qrintf_nck_t _qrintf_nck_width_lx(qrintf_nck_t ctx, int fill_ch, int width, unsigned long v)
-{
-    int len;
-    if (v != 0) {
-        int bits;
-        if (sizeof(unsigned long) == sizeof(unsigned long long))
-            bits = sizeof(unsigned long long) * 8 - __builtin_clzll(v);
-        else if (sizeof(unsigned long) == sizeof(unsigned long))
-            bits = sizeof(unsigned long) * 8 - __builtin_clzl(v);
-        else
-            bits = sizeof(int) * 8 - __builtin_clz(v);
-        len = (bits + 3) >> 2;
-    } else {
-        len = 1;
-    }
-    ctx = _qrintf_nck_fill(ctx, fill_ch, len, width);
-    len *= 4;
-    do {
-        len -= 4;
-        ctx.str[ctx.off++] = ("0123456789abcdef")[(v >> len) & 0xf];
-    } while (len != 0);
-    return ctx;
-}
-
-static inline qrintf_nck_t _qrintf_nck_width_llx(qrintf_nck_t ctx, int fill_ch, int width, unsigned long long v)
-{
-    int len;
-    if (v != 0) {
-        int bits;
-        if (sizeof(unsigned long long) == sizeof(unsigned long long))
-            bits = sizeof(unsigned long long) * 8 - __builtin_clzll(v);
-        else if (sizeof(unsigned long long) == sizeof(unsigned long))
-            bits = sizeof(unsigned long) * 8 - __builtin_clzl(v);
-        else
-            bits = sizeof(int) * 8 - __builtin_clz(v);
-        len = (bits + 3) >> 2;
-    } else {
-        len = 1;
-    }
-    ctx = _qrintf_nck_fill(ctx, fill_ch, len, width);
-    len *= 4;
-    do {
-        len -= 4;
-        ctx.str[ctx.off++] = ("0123456789abcdef")[(v >> len) & 0xf];
-    } while (len != 0);
-    return ctx;
-}
-
-static inline qrintf_nck_t _qrintf_nck_width_zx(qrintf_nck_t ctx, int fill_ch, int width, size_t v)
-{
-    int len;
-    if (v != 0) {
-        int bits;
-        if (sizeof(size_t) == sizeof(unsigned long long))
-            bits = sizeof(unsigned long long) * 8 - __builtin_clzll(v);
-        else if (sizeof(size_t) == sizeof(unsigned long))
-            bits = sizeof(unsigned long) * 8 - __builtin_clzl(v);
-        else
-            bits = sizeof(int) * 8 - __builtin_clz(v);
-        len = (bits + 3) >> 2;
-    } else {
-        len = 1;
-    }
-    ctx = _qrintf_nck_fill(ctx, fill_ch, len, width);
-    len *= 4;
-    do {
-        len -= 4;
-        ctx.str[ctx.off++] = ("0123456789abcdef")[(v >> len) & 0xf];
-    } while (len != 0);
-    return ctx;
-}
-
-static inline qrintf_nck_t _qrintf_nck_hX(qrintf_nck_t ctx, unsigned short v)
-{
-    int len;
-    if (v != 0) {
-        int bits;
-        if (sizeof(unsigned short) == sizeof(unsigned long long))
-            bits = sizeof(unsigned long long) * 8 - __builtin_clzll(v);
-        else if (sizeof(unsigned short) == sizeof(unsigned long))
-            bits = sizeof(unsigned long) * 8 - __builtin_clzl(v);
-        else
-            bits = sizeof(int) * 8 - __builtin_clz(v);
-        len = (bits + 3) >> 2;
-    } else {
-        len = 1;
-    }
-    len *= 4;
-    do {
-        len -= 4;
-        ctx.str[ctx.off++] = ("0123456789ABCDEF")[(v >> len) & 0xf];
-    } while (len != 0);
-    return ctx;
-}
-
-static inline qrintf_nck_t _qrintf_nck_X(qrintf_nck_t ctx, unsigned v)
-{
-    int len;
-    if (v != 0) {
-        int bits;
-        if (sizeof(unsigned) == sizeof(unsigned long long))
-            bits = sizeof(unsigned long long) * 8 - __builtin_clzll(v);
-        else if (sizeof(unsigned) == sizeof(unsigned long))
-            bits = sizeof(unsigned long) * 8 - __builtin_clzl(v);
-        else
-            bits = sizeof(int) * 8 - __builtin_clz(v);
-        len = (bits + 3) >> 2;
-    } else {
-        len = 1;
-    }
-    len *= 4;
-    do {
-        len -= 4;
-        ctx.str[ctx.off++] = ("0123456789ABCDEF")[(v >> len) & 0xf];
-    } while (len != 0);
-    return ctx;
-}
-
-static inline qrintf_nck_t _qrintf_nck_lX(qrintf_nck_t ctx, unsigned long v)
-{
-    int len;
-    if (v != 0) {
-        int bits;
-        if (sizeof(unsigned long) == sizeof(unsigned long long))
-            bits = sizeof(unsigned long long) * 8 - __builtin_clzll(v);
-        else if (sizeof(unsigned long) == sizeof(unsigned long))
-            bits = sizeof(unsigned long) * 8 - __builtin_clzl(v);
-        else
-            bits = sizeof(int) * 8 - __builtin_clz(v);
-        len = (bits + 3) >> 2;
-    } else {
-        len = 1;
-    }
-    len *= 4;
-    do {
-        len -= 4;
-        ctx.str[ctx.off++] = ("0123456789ABCDEF")[(v >> len) & 0xf];
-    } while (len != 0);
-    return ctx;
-}
-
-static inline qrintf_nck_t _qrintf_nck_llX(qrintf_nck_t ctx, unsigned long long v)
-{
-    int len;
-    if (v != 0) {
-        int bits;
-        if (sizeof(unsigned long long) == sizeof(unsigned long long))
-            bits = sizeof(unsigned long long) * 8 - __builtin_clzll(v);
-        else if (sizeof(unsigned long long) == sizeof(unsigned long))
-            bits = sizeof(unsigned long) * 8 - __builtin_clzl(v);
-        else
-            bits = sizeof(int) * 8 - __builtin_clz(v);
-        len = (bits + 3) >> 2;
-    } else {
-        len = 1;
-    }
-    len *= 4;
-    do {
-        len -= 4;
-        ctx.str[ctx.off++] = ("0123456789ABCDEF")[(v >> len) & 0xf];
-    } while (len != 0);
-    return ctx;
-}
-
-static inline qrintf_nck_t _qrintf_nck_zX(qrintf_nck_t ctx, size_t v)
-{
-    int len;
-    if (v != 0) {
-        int bits;
-        if (sizeof(size_t) == sizeof(unsigned long long))
-            bits = sizeof(unsigned long long) * 8 - __builtin_clzll(v);
-        else if (sizeof(size_t) == sizeof(unsigned long))
-            bits = sizeof(unsigned long) * 8 - __builtin_clzl(v);
-        else
-            bits = sizeof(int) * 8 - __builtin_clz(v);
-        len = (bits + 3) >> 2;
-    } else {
-        len = 1;
-    }
-    len *= 4;
-    do {
-        len -= 4;
-        ctx.str[ctx.off++] = ("0123456789ABCDEF")[(v >> len) & 0xf];
-    } while (len != 0);
-    return ctx;
-}
-
-static inline qrintf_nck_t _qrintf_nck_width_hX(qrintf_nck_t ctx, int fill_ch, int width, unsigned short v)
+static inline qrintf_nck_t _qrintf_nck_width_hx(qrintf_nck_t ctx, int fill_ch, int width, unsigned short v, const char *chars)
 {
     int len;
     if (v != 0) {
@@ -843,12 +608,12 @@ static inline qrintf_nck_t _qrintf_nck_width_hX(qrintf_nck_t ctx, int fill_ch, i
     len *= 4;
     do {
         len -= 4;
-        ctx.str[ctx.off++] = ("0123456789ABCDEF")[(v >> len) & 0xf];
+        ctx.str[ctx.off++] = chars[(v >> len) & 0xf];
     } while (len != 0);
     return ctx;
 }
 
-static inline qrintf_nck_t _qrintf_nck_width_X(qrintf_nck_t ctx, int fill_ch, int width, unsigned v)
+static inline qrintf_nck_t _qrintf_nck_width_x(qrintf_nck_t ctx, int fill_ch, int width, unsigned v, const char *chars)
 {
     int len;
     if (v != 0) {
@@ -867,12 +632,12 @@ static inline qrintf_nck_t _qrintf_nck_width_X(qrintf_nck_t ctx, int fill_ch, in
     len *= 4;
     do {
         len -= 4;
-        ctx.str[ctx.off++] = ("0123456789ABCDEF")[(v >> len) & 0xf];
+        ctx.str[ctx.off++] = chars[(v >> len) & 0xf];
     } while (len != 0);
     return ctx;
 }
 
-static inline qrintf_nck_t _qrintf_nck_width_lX(qrintf_nck_t ctx, int fill_ch, int width, unsigned long v)
+static inline qrintf_nck_t _qrintf_nck_width_lx(qrintf_nck_t ctx, int fill_ch, int width, unsigned long v, const char *chars)
 {
     int len;
     if (v != 0) {
@@ -891,12 +656,12 @@ static inline qrintf_nck_t _qrintf_nck_width_lX(qrintf_nck_t ctx, int fill_ch, i
     len *= 4;
     do {
         len -= 4;
-        ctx.str[ctx.off++] = ("0123456789ABCDEF")[(v >> len) & 0xf];
+        ctx.str[ctx.off++] = chars[(v >> len) & 0xf];
     } while (len != 0);
     return ctx;
 }
 
-static inline qrintf_nck_t _qrintf_nck_width_llX(qrintf_nck_t ctx, int fill_ch, int width, unsigned long long v)
+static inline qrintf_nck_t _qrintf_nck_width_llx(qrintf_nck_t ctx, int fill_ch, int width, unsigned long long v, const char *chars)
 {
     int len;
     if (v != 0) {
@@ -915,12 +680,12 @@ static inline qrintf_nck_t _qrintf_nck_width_llX(qrintf_nck_t ctx, int fill_ch, 
     len *= 4;
     do {
         len -= 4;
-        ctx.str[ctx.off++] = ("0123456789ABCDEF")[(v >> len) & 0xf];
+        ctx.str[ctx.off++] = chars[(v >> len) & 0xf];
     } while (len != 0);
     return ctx;
 }
 
-static inline qrintf_nck_t _qrintf_nck_width_zX(qrintf_nck_t ctx, int fill_ch, int width, size_t v)
+static inline qrintf_nck_t _qrintf_nck_width_zx(qrintf_nck_t ctx, int fill_ch, int width, size_t v, const char *chars)
 {
     int len;
     if (v != 0) {
@@ -939,7 +704,7 @@ static inline qrintf_nck_t _qrintf_nck_width_zX(qrintf_nck_t ctx, int fill_ch, i
     len *= 4;
     do {
         len -= 4;
-        ctx.str[ctx.off++] = ("0123456789ABCDEF")[(v >> len) & 0xf];
+        ctx.str[ctx.off++] = chars[(v >> len) & 0xf];
     } while (len != 0);
     return ctx;
 }
@@ -1171,7 +936,7 @@ static inline qrintf_chk_t _qrintf_chk_width_zu(qrintf_chk_t ctx, int fill_ch, i
     return _qrintf_chk_s_len(ctx, p, len);
 }
 
-static inline qrintf_chk_t _qrintf_chk_hx(qrintf_chk_t ctx, unsigned short v)
+static inline qrintf_chk_t _qrintf_chk_hx(qrintf_chk_t ctx, unsigned short v, const char *chars)
 {
     int len;
     if (v != 0) {
@@ -1189,12 +954,12 @@ static inline qrintf_chk_t _qrintf_chk_hx(qrintf_chk_t ctx, unsigned short v)
     len *= 4;
     do {
         len -= 4;
-        do { int ch = ("0123456789abcdef")[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
+        do { int ch = chars[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
     } while (len != 0);
     return ctx;
 }
 
-static inline qrintf_chk_t _qrintf_chk_x(qrintf_chk_t ctx, unsigned v)
+static inline qrintf_chk_t _qrintf_chk_x(qrintf_chk_t ctx, unsigned v, const char *chars)
 {
     int len;
     if (v != 0) {
@@ -1212,12 +977,12 @@ static inline qrintf_chk_t _qrintf_chk_x(qrintf_chk_t ctx, unsigned v)
     len *= 4;
     do {
         len -= 4;
-        do { int ch = ("0123456789abcdef")[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
+        do { int ch = chars[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
     } while (len != 0);
     return ctx;
 }
 
-static inline qrintf_chk_t _qrintf_chk_lx(qrintf_chk_t ctx, unsigned long v)
+static inline qrintf_chk_t _qrintf_chk_lx(qrintf_chk_t ctx, unsigned long v, const char *chars)
 {
     int len;
     if (v != 0) {
@@ -1235,12 +1000,12 @@ static inline qrintf_chk_t _qrintf_chk_lx(qrintf_chk_t ctx, unsigned long v)
     len *= 4;
     do {
         len -= 4;
-        do { int ch = ("0123456789abcdef")[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
+        do { int ch = chars[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
     } while (len != 0);
     return ctx;
 }
 
-static inline qrintf_chk_t _qrintf_chk_llx(qrintf_chk_t ctx, unsigned long long v)
+static inline qrintf_chk_t _qrintf_chk_llx(qrintf_chk_t ctx, unsigned long long v, const char *chars)
 {
     int len;
     if (v != 0) {
@@ -1258,12 +1023,12 @@ static inline qrintf_chk_t _qrintf_chk_llx(qrintf_chk_t ctx, unsigned long long 
     len *= 4;
     do {
         len -= 4;
-        do { int ch = ("0123456789abcdef")[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
+        do { int ch = chars[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
     } while (len != 0);
     return ctx;
 }
 
-static inline qrintf_chk_t _qrintf_chk_zx(qrintf_chk_t ctx, size_t v)
+static inline qrintf_chk_t _qrintf_chk_zx(qrintf_chk_t ctx, size_t v, const char *chars)
 {
     int len;
     if (v != 0) {
@@ -1281,247 +1046,12 @@ static inline qrintf_chk_t _qrintf_chk_zx(qrintf_chk_t ctx, size_t v)
     len *= 4;
     do {
         len -= 4;
-        do { int ch = ("0123456789abcdef")[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
+        do { int ch = chars[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
     } while (len != 0);
     return ctx;
 }
 
-static inline qrintf_chk_t _qrintf_chk_width_hx(qrintf_chk_t ctx, int fill_ch, int width, unsigned short v)
-{
-    int len;
-    if (v != 0) {
-        int bits;
-        if (sizeof(unsigned short) == sizeof(unsigned long long))
-            bits = sizeof(unsigned long long) * 8 - __builtin_clzll(v);
-        else if (sizeof(unsigned short) == sizeof(unsigned long))
-            bits = sizeof(unsigned long) * 8 - __builtin_clzl(v);
-        else
-            bits = sizeof(int) * 8 - __builtin_clz(v);
-        len = (bits + 3) >> 2;
-    } else {
-        len = 1;
-    }
-    ctx = _qrintf_chk_fill(ctx, fill_ch, len, width);
-    len *= 4;
-    do {
-        len -= 4;
-        do { int ch = ("0123456789abcdef")[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
-    } while (len != 0);
-    return ctx;
-}
-
-static inline qrintf_chk_t _qrintf_chk_width_x(qrintf_chk_t ctx, int fill_ch, int width, unsigned v)
-{
-    int len;
-    if (v != 0) {
-        int bits;
-        if (sizeof(unsigned) == sizeof(unsigned long long))
-            bits = sizeof(unsigned long long) * 8 - __builtin_clzll(v);
-        else if (sizeof(unsigned) == sizeof(unsigned long))
-            bits = sizeof(unsigned long) * 8 - __builtin_clzl(v);
-        else
-            bits = sizeof(int) * 8 - __builtin_clz(v);
-        len = (bits + 3) >> 2;
-    } else {
-        len = 1;
-    }
-    ctx = _qrintf_chk_fill(ctx, fill_ch, len, width);
-    len *= 4;
-    do {
-        len -= 4;
-        do { int ch = ("0123456789abcdef")[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
-    } while (len != 0);
-    return ctx;
-}
-
-static inline qrintf_chk_t _qrintf_chk_width_lx(qrintf_chk_t ctx, int fill_ch, int width, unsigned long v)
-{
-    int len;
-    if (v != 0) {
-        int bits;
-        if (sizeof(unsigned long) == sizeof(unsigned long long))
-            bits = sizeof(unsigned long long) * 8 - __builtin_clzll(v);
-        else if (sizeof(unsigned long) == sizeof(unsigned long))
-            bits = sizeof(unsigned long) * 8 - __builtin_clzl(v);
-        else
-            bits = sizeof(int) * 8 - __builtin_clz(v);
-        len = (bits + 3) >> 2;
-    } else {
-        len = 1;
-    }
-    ctx = _qrintf_chk_fill(ctx, fill_ch, len, width);
-    len *= 4;
-    do {
-        len -= 4;
-        do { int ch = ("0123456789abcdef")[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
-    } while (len != 0);
-    return ctx;
-}
-
-static inline qrintf_chk_t _qrintf_chk_width_llx(qrintf_chk_t ctx, int fill_ch, int width, unsigned long long v)
-{
-    int len;
-    if (v != 0) {
-        int bits;
-        if (sizeof(unsigned long long) == sizeof(unsigned long long))
-            bits = sizeof(unsigned long long) * 8 - __builtin_clzll(v);
-        else if (sizeof(unsigned long long) == sizeof(unsigned long))
-            bits = sizeof(unsigned long) * 8 - __builtin_clzl(v);
-        else
-            bits = sizeof(int) * 8 - __builtin_clz(v);
-        len = (bits + 3) >> 2;
-    } else {
-        len = 1;
-    }
-    ctx = _qrintf_chk_fill(ctx, fill_ch, len, width);
-    len *= 4;
-    do {
-        len -= 4;
-        do { int ch = ("0123456789abcdef")[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
-    } while (len != 0);
-    return ctx;
-}
-
-static inline qrintf_chk_t _qrintf_chk_width_zx(qrintf_chk_t ctx, int fill_ch, int width, size_t v)
-{
-    int len;
-    if (v != 0) {
-        int bits;
-        if (sizeof(size_t) == sizeof(unsigned long long))
-            bits = sizeof(unsigned long long) * 8 - __builtin_clzll(v);
-        else if (sizeof(size_t) == sizeof(unsigned long))
-            bits = sizeof(unsigned long) * 8 - __builtin_clzl(v);
-        else
-            bits = sizeof(int) * 8 - __builtin_clz(v);
-        len = (bits + 3) >> 2;
-    } else {
-        len = 1;
-    }
-    ctx = _qrintf_chk_fill(ctx, fill_ch, len, width);
-    len *= 4;
-    do {
-        len -= 4;
-        do { int ch = ("0123456789abcdef")[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
-    } while (len != 0);
-    return ctx;
-}
-
-static inline qrintf_chk_t _qrintf_chk_hX(qrintf_chk_t ctx, unsigned short v)
-{
-    int len;
-    if (v != 0) {
-        int bits;
-        if (sizeof(unsigned short) == sizeof(unsigned long long))
-            bits = sizeof(unsigned long long) * 8 - __builtin_clzll(v);
-        else if (sizeof(unsigned short) == sizeof(unsigned long))
-            bits = sizeof(unsigned long) * 8 - __builtin_clzl(v);
-        else
-            bits = sizeof(int) * 8 - __builtin_clz(v);
-        len = (bits + 3) >> 2;
-    } else {
-        len = 1;
-    }
-    len *= 4;
-    do {
-        len -= 4;
-        do { int ch = ("0123456789ABCDEF")[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
-    } while (len != 0);
-    return ctx;
-}
-
-static inline qrintf_chk_t _qrintf_chk_X(qrintf_chk_t ctx, unsigned v)
-{
-    int len;
-    if (v != 0) {
-        int bits;
-        if (sizeof(unsigned) == sizeof(unsigned long long))
-            bits = sizeof(unsigned long long) * 8 - __builtin_clzll(v);
-        else if (sizeof(unsigned) == sizeof(unsigned long))
-            bits = sizeof(unsigned long) * 8 - __builtin_clzl(v);
-        else
-            bits = sizeof(int) * 8 - __builtin_clz(v);
-        len = (bits + 3) >> 2;
-    } else {
-        len = 1;
-    }
-    len *= 4;
-    do {
-        len -= 4;
-        do { int ch = ("0123456789ABCDEF")[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
-    } while (len != 0);
-    return ctx;
-}
-
-static inline qrintf_chk_t _qrintf_chk_lX(qrintf_chk_t ctx, unsigned long v)
-{
-    int len;
-    if (v != 0) {
-        int bits;
-        if (sizeof(unsigned long) == sizeof(unsigned long long))
-            bits = sizeof(unsigned long long) * 8 - __builtin_clzll(v);
-        else if (sizeof(unsigned long) == sizeof(unsigned long))
-            bits = sizeof(unsigned long) * 8 - __builtin_clzl(v);
-        else
-            bits = sizeof(int) * 8 - __builtin_clz(v);
-        len = (bits + 3) >> 2;
-    } else {
-        len = 1;
-    }
-    len *= 4;
-    do {
-        len -= 4;
-        do { int ch = ("0123456789ABCDEF")[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
-    } while (len != 0);
-    return ctx;
-}
-
-static inline qrintf_chk_t _qrintf_chk_llX(qrintf_chk_t ctx, unsigned long long v)
-{
-    int len;
-    if (v != 0) {
-        int bits;
-        if (sizeof(unsigned long long) == sizeof(unsigned long long))
-            bits = sizeof(unsigned long long) * 8 - __builtin_clzll(v);
-        else if (sizeof(unsigned long long) == sizeof(unsigned long))
-            bits = sizeof(unsigned long) * 8 - __builtin_clzl(v);
-        else
-            bits = sizeof(int) * 8 - __builtin_clz(v);
-        len = (bits + 3) >> 2;
-    } else {
-        len = 1;
-    }
-    len *= 4;
-    do {
-        len -= 4;
-        do { int ch = ("0123456789ABCDEF")[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
-    } while (len != 0);
-    return ctx;
-}
-
-static inline qrintf_chk_t _qrintf_chk_zX(qrintf_chk_t ctx, size_t v)
-{
-    int len;
-    if (v != 0) {
-        int bits;
-        if (sizeof(size_t) == sizeof(unsigned long long))
-            bits = sizeof(unsigned long long) * 8 - __builtin_clzll(v);
-        else if (sizeof(size_t) == sizeof(unsigned long))
-            bits = sizeof(unsigned long) * 8 - __builtin_clzl(v);
-        else
-            bits = sizeof(int) * 8 - __builtin_clz(v);
-        len = (bits + 3) >> 2;
-    } else {
-        len = 1;
-    }
-    len *= 4;
-    do {
-        len -= 4;
-        do { int ch = ("0123456789ABCDEF")[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
-    } while (len != 0);
-    return ctx;
-}
-
-static inline qrintf_chk_t _qrintf_chk_width_hX(qrintf_chk_t ctx, int fill_ch, int width, unsigned short v)
+static inline qrintf_chk_t _qrintf_chk_width_hx(qrintf_chk_t ctx, int fill_ch, int width, unsigned short v, const char *chars)
 {
     int len;
     if (v != 0) {
@@ -1540,12 +1070,12 @@ static inline qrintf_chk_t _qrintf_chk_width_hX(qrintf_chk_t ctx, int fill_ch, i
     len *= 4;
     do {
         len -= 4;
-        do { int ch = ("0123456789ABCDEF")[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
+        do { int ch = chars[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
     } while (len != 0);
     return ctx;
 }
 
-static inline qrintf_chk_t _qrintf_chk_width_X(qrintf_chk_t ctx, int fill_ch, int width, unsigned v)
+static inline qrintf_chk_t _qrintf_chk_width_x(qrintf_chk_t ctx, int fill_ch, int width, unsigned v, const char *chars)
 {
     int len;
     if (v != 0) {
@@ -1564,12 +1094,12 @@ static inline qrintf_chk_t _qrintf_chk_width_X(qrintf_chk_t ctx, int fill_ch, in
     len *= 4;
     do {
         len -= 4;
-        do { int ch = ("0123456789ABCDEF")[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
+        do { int ch = chars[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
     } while (len != 0);
     return ctx;
 }
 
-static inline qrintf_chk_t _qrintf_chk_width_lX(qrintf_chk_t ctx, int fill_ch, int width, unsigned long v)
+static inline qrintf_chk_t _qrintf_chk_width_lx(qrintf_chk_t ctx, int fill_ch, int width, unsigned long v, const char *chars)
 {
     int len;
     if (v != 0) {
@@ -1588,12 +1118,12 @@ static inline qrintf_chk_t _qrintf_chk_width_lX(qrintf_chk_t ctx, int fill_ch, i
     len *= 4;
     do {
         len -= 4;
-        do { int ch = ("0123456789ABCDEF")[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
+        do { int ch = chars[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
     } while (len != 0);
     return ctx;
 }
 
-static inline qrintf_chk_t _qrintf_chk_width_llX(qrintf_chk_t ctx, int fill_ch, int width, unsigned long long v)
+static inline qrintf_chk_t _qrintf_chk_width_llx(qrintf_chk_t ctx, int fill_ch, int width, unsigned long long v, const char *chars)
 {
     int len;
     if (v != 0) {
@@ -1612,12 +1142,12 @@ static inline qrintf_chk_t _qrintf_chk_width_llX(qrintf_chk_t ctx, int fill_ch, 
     len *= 4;
     do {
         len -= 4;
-        do { int ch = ("0123456789ABCDEF")[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
+        do { int ch = chars[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
     } while (len != 0);
     return ctx;
 }
 
-static inline qrintf_chk_t _qrintf_chk_width_zX(qrintf_chk_t ctx, int fill_ch, int width, size_t v)
+static inline qrintf_chk_t _qrintf_chk_width_zx(qrintf_chk_t ctx, int fill_ch, int width, size_t v, const char *chars)
 {
     int len;
     if (v != 0) {
@@ -1636,7 +1166,7 @@ static inline qrintf_chk_t _qrintf_chk_width_zX(qrintf_chk_t ctx, int fill_ch, i
     len *= 4;
     do {
         len -= 4;
-        do { int ch = ("0123456789ABCDEF")[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
+        do { int ch = chars[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
     } while (len != 0);
     return ctx;
 }

@@ -100,7 +100,7 @@ sub build_x {
     return build_mt(template => << 'EOT', escape_func => undef)->($check, $type, $suffix, $with_width ? '_width' : '');
 ? my ($check, $type, $suffix, $width) = @_;
 ? my $push = $check eq 'chk' ? sub { "do { int ch = $_[0]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0)" } : sub { "ctx.str[ctx.off++] = $_[0]" };
-static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?><?= $width ?>_<?= $suffix ?>(qrintf_<?= $check ?>_t ctx<?= $width ? ", int fill_ch, int width" : "" ?>, <?= $type ?> v)
+static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?><?= $width ?>_<?= $suffix ?>(qrintf_<?= $check ?>_t ctx<?= $width ? ", int fill_ch, int width" : "" ?>, <?= $type ?> v, const char *chars)
 {
     int len;
     if (v != 0) {
@@ -121,7 +121,7 @@ static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?><?= $width ?>_<?= $suf
     len *= 4;
     do {
         len -= 4;
-        <?= $push->(sprintf(q{(%s)[(v >> len) & 0xf]}, $suffix =~ /X$/ ? '"0123456789ABCDEF"' : '"0123456789abcdef"')) ?>;
+        <?= $push->(q{chars[(v >> len) & 0xf]}) ?>;
     } while (len != 0);
     return ctx;
 }
@@ -318,14 +318,12 @@ static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?>_width_s(qrintf_<?= $c
 <?= $build_u->($check, "unsigned long long", "llu", "ULLONG_MAX", $with_width) ?>
 <?= $build_u->($check, "size_t", "zu", "SIZE_MAX", $with_width) ?>
 ?   }
-?   for my $suffix (qw(x X)) {
-?     for my $with_width (0..1) {
-<?= $build_x->($check, "unsigned short", "h$suffix", $with_width) ?>
-<?= $build_x->($check, "unsigned", "$suffix", $with_width) ?>
-<?= $build_x->($check, "unsigned long", "l$suffix", $with_width) ?>
-<?= $build_x->($check, "unsigned long long", "ll$suffix", $with_width) ?>
-<?= $build_x->($check, "size_t", "z$suffix", $with_width) ?>
-?     }
+?   for my $with_width (0..1) {
+<?= $build_x->($check, "unsigned short", "hx", $with_width) ?>
+<?= $build_x->($check, "unsigned", "x", $with_width) ?>
+<?= $build_x->($check, "unsigned long", "lx", $with_width) ?>
+<?= $build_x->($check, "unsigned long long", "llx", $with_width) ?>
+<?= $build_x->($check, "size_t", "zx", $with_width) ?>
 ?   }
 ? }
 
