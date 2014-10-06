@@ -28,57 +28,56 @@ sub build_d {
     return build_mt(template => << 'EOT', escape_func => undef)->(@_);
 ? my ($check, $type, $suffix, $min, $max) = @_;
 ? if ($check eq 'nck') {
-static inline int _qrintf_<?= $suffix ?>_core(char *buf, <?= $type ?> v)
+static inline char *_qrintf_<?= $suffix ?>_core(char *p, <?= $type ?> v)
 {
-    int i = 0;
     if (v < 0) {
         if (v == <?= $min ?>) {
-            buf[i++] = '1' + <?= $max ?> % 10;
+            *--p = '1' + <?= $max ?> % 10;
             v = <?= $max ?> / 10;
         } else {
             v = -v;
         }
     }
     do {
-        buf[i++] = '0' + v % 10;
+        *--p = '0' + v % 10;
     } while ((v /= 10) != 0);
-    return i;
+    return p;
 }
 ? }
 ? my $push = $check eq 'chk' ? sub { "do { int ch = $_[0]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0)" } : sub { "ctx.str[ctx.off++] = $_[0]" };
 
 static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?>_<?= $suffix ?>(qrintf_<?= $check ?>_t ctx, <?= $type ?> v)
 {
-    char buf[sizeof(<?= $type ?>) * 3];
-    int len;
+    char buf[sizeof(<?= $type ?>) * 3], *p;
     if (v < 0) {
         <?= $push->(q{'-'}) ?>;
     }
-    len = _qrintf_<?= $suffix ?>_core(buf, v);
+    p = _qrintf_<?= $suffix ?>_core(buf + sizeof(buf), v);
     do {
-        <?= $push->(q{buf[--len]}) ?>;
-    } while (len != 0);
+        <?= $push->(q{*p++}) ?>;
+    } while (p != buf + sizeof(buf));
     return ctx;
 }
 
 static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?>_width_<?= $suffix ?>(qrintf_<?= $check ?>_t ctx, int fill_ch, int width, <?= $type ?> v)
 {
-    char buf[sizeof(<?= $type ?>) * 3 + 1];
-    int len = _qrintf_<?= $suffix ?>_core(buf, v);
+    char buf[sizeof(<?= $type ?>) * 3 + 1], *p = _qrintf_<?= $suffix ?>_core(buf + sizeof(buf), v);
+    int len;
     if (v < 0) {
         if (fill_ch == ' ') {
-            buf[len++] = '-';
+            *--p = '-';
         } else {
             <?= $push->(q{'-'}) ?>;
             --width;
         }
     }
+    len = buf + sizeof(buf) - p;
     for (; len < width; --width) {
         <?= $push->(q{fill_ch}) ?>;
     }
     do {
-        <?= $push->(q{buf[--len]}) ?>;
-    } while (len != 0);
+        <?= $push->(q{*p++}) ?>;
+    } while (p != buf + sizeof(buf));
     return ctx;
 }
 EOT
@@ -91,19 +90,21 @@ sub build_u {
 ? my $push = $check eq 'chk' ? sub { "do { int ch = $_[0]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0)" } : sub { "ctx.str[ctx.off++] = $_[0]" };
 static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?><?= $width ?>_<?= $suffix ?>(qrintf_<?= $check ?>_t ctx<?= $width ? ", int fill_ch, int width" : "" ?>, <?= $type ?> v)
 {
-    char tmp[sizeof(<?= $type ?>) * 3];
-    int len = 0;
+    char tmp[sizeof(<?= $type ?>) * 3], *p = tmp + sizeof(tmp);
     do {
-        tmp[len++] = '0' + v % 10;
+        *--p = '0' + v % 10;
     } while ((v /= 10) != 0);
 ? if ($width) {
-    for (; len < width; --width) {
-        <?= $push->(q{fill_ch}) ?>;
+    {
+        int len = tmp + sizeof(tmp) - p;
+        for (; len < width; --width) {
+            <?= $push->(q{fill_ch}) ?>;
+        }
     }
 ? }
     do {
-        <?= $push->(q{tmp[--len]}) ?>;
-    } while (len != 0);
+        <?= $push->(q{*p++}) ?>;
+    } while (p != tmp + sizeof(tmp));
     return ctx;
 }
 EOT
