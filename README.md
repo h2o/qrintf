@@ -3,12 +3,12 @@ qrintf - sprintf accelerator
 
 [![Build Status](https://travis-ci.org/kazuho/qrintf.svg?branch=master)](https://travis-ci.org/kazuho/qrintf)
 
-sprintf(3) is a great function for stringifying various kinds of data.
+The sprintf(3) family is a great set of functions for stringifying various kinds of data.
 The drawback is that it is slow.
-In certain applications, more than 10% of CPU time is consumed by the function.
+In certain applications, more than 10% of CPU time is consumed by the functions.
 The reason why it is slow is because it parses the given format at run-time.
 
-qrintf is a preprocessor (and a set of runtime functions) that precompiles invocations of sprintf with constant format strings into specialized forms.
+qrintf is a preprocessor (and a set of runtime functions) that precompiles invocations of sprintf (and snprintf) with constant format strings into specialized forms.
 
 The benchmark below shows the power of qrintf; converting IPv4 address to string becomes 13x faster when the preprocessor is applied to the source code.
 
@@ -50,10 +50,6 @@ __Q. Is there a list of conversion specifiers that get optimized?__
 Field widths (including `*`) and `0` flag (for zero padding) are also recognized.
 
 note: Invocations of sprintf using other conversion specifiers are left as is.
-
-__Q. What about snprintf?__
-
-Patches are welcome.  sprintf has been the initial target simply because, in my case, stringification against preallocated buffer was among those that needed to be optimized.
 
 __Q. How do I run the tests?__
 
