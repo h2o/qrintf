@@ -4,7 +4,7 @@ qrintf - sprintf accelerator
 [![Build Status](https://travis-ci.org/kazuho/qrintf.svg?branch=master)](https://travis-ci.org/kazuho/qrintf)
 
 The sprintf(3) family is a great set of functions for stringifying various kinds of data.
-The drawback is that it is slow.
+The drawback is that they are slow.
 In certain applications, more than 10% of CPU time is consumed by the functions.
 The reason why it is slow is because it parses the given format at run-time.
 
@@ -39,6 +39,10 @@ Use `qrintf-gcc` in place of `gcc`.  `qrintf-gcc` is a wrapper of GCC that appli
 __Q. Why did you develop qrintf?__
 
 Because sprintf is the bottleneck in some of my applications.  I plan to use it in [H2O](https://github.com/kazuho/h2o), an optimized HTTP server/library implementation with support for HTTP/1.x, HTTP/2, websocket.
+
+__Q. Which functions are optimized?__
+
+`sprintf` and `snprintf`.
 
 __Q. Is there a list of conversion specifiers that get optimized?__
 
