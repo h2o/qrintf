@@ -45,7 +45,7 @@ static inline int _qrintf_<?= $suffix ?>_core(char *buf, <?= $type ?> v)
     return i;
 }
 ? }
-? my $push = $check eq 'chk' ? sub { "if (ctx.off < ctx.size) ctx.str[ctx.off] = $_[0]; ++ctx.off" } : sub { "ctx.str[ctx.off++] = $_[0]" };
+? my $push = $check eq 'chk' ? sub { "do { int ch = $_[0]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0)" } : sub { "ctx.str[ctx.off++] = $_[0]" };
 
 static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?>_<?= $suffix ?>(qrintf_<?= $check ?>_t ctx, <?= $type ?> v)
 {
@@ -88,7 +88,7 @@ sub build_u {
     my ($check, $type, $suffix, $max, $with_width) = @_;
     return build_mt(template => << 'EOT', escape_func => undef)->($check, $type, $suffix, $max, $with_width ? '_width' : '');
 ? my ($check, $type, $suffix, $max, $width) = @_;
-? my $push = $check eq 'chk' ? sub { "if (ctx.off < ctx.size) ctx.str[ctx.off] = $_[0]; ++ctx.off" } : sub { "ctx.str[ctx.off++] = $_[0]" };
+? my $push = $check eq 'chk' ? sub { "do { int ch = $_[0]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0)" } : sub { "ctx.str[ctx.off++] = $_[0]" };
 static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?><?= $width ?>_<?= $suffix ?>(qrintf_<?= $check ?>_t ctx<?= $width ? ", int fill_ch, int width" : "" ?>, <?= $type ?> v)
 {
     char tmp[sizeof(<?= $type ?>) * 3];
@@ -113,7 +113,7 @@ sub build_x {
     my ($check, $type, $suffix, $with_width) = @_;
     return build_mt(template => << 'EOT', escape_func => undef)->($check, $type, $suffix, $with_width ? '_width' : '');
 ? my ($check, $type, $suffix, $width) = @_;
-? my $push = $check eq 'chk' ? sub { "if (ctx.off < ctx.size) ctx.str[ctx.off] = $_[0]; ++ctx.off" } : sub { "ctx.str[ctx.off++] = $_[0]" };
+? my $push = $check eq 'chk' ? sub { "do { int ch = $_[0]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0)" } : sub { "ctx.str[ctx.off++] = $_[0]" };
 static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?><?= $width ?>_<?= $suffix ?>(qrintf_<?= $check ?>_t ctx<?= $width ? ", int fill_ch, int width" : "" ?>, <?= $type ?> v)
 {
     int len;
@@ -240,7 +240,7 @@ static inline int _qrintf_chk_finalize(qrintf_chk_t ctx)
 }
 
 ? for my $check (qw(nck chk)) {
-?   my $push = $check eq 'chk' ? sub { "if (ctx.off < ctx.size) ctx.str[ctx.off] = $_[0]; ++ctx.off" } : sub { "ctx.str[ctx.off++] = $_[0]" };
+?   my $push = $check eq 'chk' ? sub { "do { int ch = $_[0]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0)" } : sub { "ctx.str[ctx.off++] = $_[0]" };
 static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?>_c(qrintf_<?= $check ?>_t ctx, int c)
 {
     <?= $push->(q{c}) ?>;

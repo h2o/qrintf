@@ -45,9 +45,9 @@ size_t _qrintf_call_cnt;
 # define CHECK_CALL_COUNT
 #endif
 
-#define _CHECK(fcall, ocall, ...) \
+#define _CHECK(size, fcall, ocall) \
     do { \
-        char pbuf[256], qbuf[256]; \
+        char pbuf[size], qbuf[size]; \
         int plen, qlen; \
         RESET_CALL_COUNT; \
         plen = ocall; \
@@ -58,10 +58,12 @@ size_t _qrintf_call_cnt;
         if (plen != qlen || strcmp(pbuf, qbuf) != 0) \
             printf("# expected: \"%s\", got: \"%s\"\n", pbuf, qbuf); \
     } while (0)
+#define CHECK_SPRINTF(size, ...) _CHECK(size, sprintf(qbuf, __VA_ARGS__), orig(pbuf, __VA_ARGS__))
+#define CHECK_SNPRINTF(size, ...) _CHECK(size, snprintf(qbuf, sizeof(qbuf), __VA_ARGS__), orign(pbuf, sizeof(pbuf), __VA_ARGS__))
 #define CHECK(...) \
     do { \
-        _CHECK(sprintf(qbuf, __VA_ARGS__), orig(pbuf, __VA_ARGS__)); \
-        _CHECK(snprintf(qbuf, sizeof(qbuf), __VA_ARGS__), orign(pbuf, sizeof(pbuf), __VA_ARGS__)); \
+        CHECK_SPRINTF(256, __VA_ARGS__); \
+        CHECK_SNPRINTF(256, __VA_ARGS__); \
     } while (0)
 
 void test_simple()
@@ -128,6 +130,11 @@ void test_simple()
     CHECK_MULTI(unsigned, "%07u", 0, UINT_MAX);
     CHECK_MULTI(unsigned, "%7x", 0, UINT_MAX);
     CHECK_MULTI(unsigned, "%07x", 0, UINT_MAX);
+
+    CHECK_SNPRINTF(8, "%s", "abcdef");
+    CHECK_SNPRINTF(3, "%d", 12345);
+    CHECK_SNPRINTF(10, "%u.%u.%u.%u", 12, 34, 56, 78);
+    CHECK_SNPRINTF(3, "%x", 0xffff);
 }
 
 void test_composite()
