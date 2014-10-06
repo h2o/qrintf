@@ -41,35 +41,21 @@ $re_expr = qr {
 
 my $src = join '', <STDIN>;
 
-# rewrite sprintf
+# rewrite sn?printf
 $src =~ s{
     (?:(?<=[^A-Za-z0-9_])|^)
     (
-        (?:s|_qp_s)printf
-        (\s* \( \s*)
-        ($re_expr)
+        (?:
+            (?:s|_qp_s)printf (\s* \( \s*) ($re_expr)
+            | (?:s|_qp_s)nprintf (\s* \( \s*) ($re_expr \s* , \s* $re_expr)
+        )
         (\s*),
         (\s*)
         " ( (?:\\.|[^\\"])* ) "
         ( (?: \s* , \s* $re_expr )* )
         (\s* \))
     )
-}{ rewrite('nck', $1, $2, $3, $4, $5, $6, $7, $8) }gxse;
-
-# rewrite snprintf
-$src =~ s{
-    (?:(?<=[^A-Za-z0-9_])|^)
-    (
-        (?:s|_qp_s)nprintf
-        (\s* \( \s*)
-        ($re_expr \s* , \s* $re_expr)
-        (\s*),
-        (\s*)
-        " ( (?:\\.|[^\\"])* ) "
-        ( (?: \s* , \s* $re_expr )* )
-        (\s* \))
-    )
-}{ rewrite('chk', $1, $2, $3, $4, $5, $6, $7, $8) }gxse;
+}{ rewrite($2 ? 'nck' : 'chk', $1, $2 ? $2 : $4, $2 ? $3 : $5, $6, $7, $8, $9, $10) }gxse;
 
 print $src;
 
