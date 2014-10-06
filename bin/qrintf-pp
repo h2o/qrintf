@@ -43,7 +43,7 @@ my $src = join '', <STDIN>;
 
 # rewrite sn?printf
 $src =~ s{
-    (?:(?<=[^A-Za-z0-9_])|^)
+    (?<![A-Za-z0-9_])
     (
         (?:
             (?:s|_qp_s)printf (\s* \( \s*) ($re_expr)
