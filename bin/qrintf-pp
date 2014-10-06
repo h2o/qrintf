@@ -36,6 +36,7 @@ $re_expr = qr {
 
 my $src = join '', <STDIN>;
 
+# rewrite sprintf
 $src =~ s{
     (?:(?<=[^A-Za-z0-9_])|^)
     (
@@ -50,21 +51,38 @@ $src =~ s{
     )|(
         _qp_sprintf(?![A-Za-z0-9_])
     )
-}{ $9 ? "sprintf" : rewrite_sprintf($1, $2, $3, $4, $5, $6, $7, $8) }gxse;
+}{ $9 ? "sprintf" : rewrite('nck', $1, $2, $3, $4, $5, $6, $7, $8) }gxse;
+
+# rewrite snprintf
+$src =~ s{
+    (?:(?<=[^A-Za-z0-9_])|^)
+    (
+        (?:s|_qp_s)nprintf
+        (\s* \( \s*)
+        ($re_expr \s* , \s* $re_expr)
+        (\s*),
+        (\s*)
+        " ( (?:\\.|[^\\"])* ) "
+        ( (?: \s* , \s* $re_expr )* )
+        (\s* \))
+    )|(
+        _qp_snprintf(?![A-Za-z0-9_])
+    )
+}{ $9 ? "snprintf" : rewrite('chk', $1, $2, $3, $4, $5, $6, $7, $8) }gxse;
 
 print $src;
 
 sub _append_literal {
-    my ($expr, $literal) = @_;
+    my ($check, $expr, $literal) = @_;
     return $expr
         if length $literal == 0;
-    return "_qrintf_nck_c($expr, '$literal')"
+    return "_qrintf_${check}_c($expr, '$literal')"
         if length $literal == 1;
-    return "_qrintf_nck_s_len($expr, \"$literal\", sizeof(\"$literal\") - 1)";
+    return "_qrintf_${check}_s_len($expr, \"$literal\", sizeof(\"$literal\") - 1)";
 }
 
-sub rewrite_sprintf {
-    my ($orig, $start_brace, $dst, $space_after_dst, $space_before_fmt, $fmt, $values, $end_brace) = @_;
+sub rewrite {
+    my ($check, $orig, $start_brace, $dst, $space_after_dst, $space_before_fmt, $fmt, $values, $end_brace) = @_;
 
     $orig =~ s/^_qp_//; # _qp_sprintf => sprinf
 
@@ -73,12 +91,12 @@ sub rewrite_sprintf {
         or return $orig;
 
     # build the expr
-    my $expr = "_qrintf_nck_init($dst)$space_after_dst$space_before_fmt";
+    my $expr = "_qrintf_${check}_init($dst)$space_after_dst$space_before_fmt";
     my $literal = '';
     for my $token (split /(%(?:%|-?0?(?:[0-9]+|\*|)(?:(?:h||l|ll|z)[uxX]|(?:h||l|ll)[di]|s|c)))/, $fmt) {
         if ($token =~ /^%(-?)(0?)([0-9]+|\*|)((?:h||l|ll|z)[uxX]|(?:h||l|ll)[di]|s|c)$/) {
             my ($left_adjust, $zero_pad, $width, $conv) = ($1, $2, $3, $4);
-            $expr = _append_literal($expr, $literal);
+            $expr = _append_literal($check, $expr, $literal);
             $literal = '';
             $conv =~ s/i$/d/s; # convert %?i to %?d
             if ($width ne '') {
@@ -89,17 +107,17 @@ sub rewrite_sprintf {
                     $width = ", $width";
                 }
                 my $pad_ch = $zero_pad ne '' ? '0' : ' ';
-                $expr = "_qrintf_nck_width_$conv($expr, '$pad_ch'$width" . shift(@values) . ")";
+                $expr = "_qrintf_${check}_width_$conv($expr, '$pad_ch'$width" . shift(@values) . ")";
             } else {
-                $expr = "_qrintf_nck_$conv($expr" . shift(@values) . ")";
+                $expr = "_qrintf_${check}_$conv($expr" . shift(@values) . ")";
             }
         } else {
             $token =~ s/%(.?)/return $orig unless $1 eq '%'; $1/eg;
             $literal .= $token;
         }
     }
-    $expr = _append_literal($expr, $literal);
-    $expr = "_qrintf_nck_finalize$start_brace$expr$end_brace";
+    $expr = _append_literal($check, $expr, $literal);
+    $expr = "_qrintf_${check}_finalize$start_brace$expr$end_brace";
 
     return $expr;
 }

@@ -34,6 +34,7 @@ static void test_composite(void);
 #include "../deps/picotest/picotest.c"
 
 static int (*orig)(char *str, const char *fmt, ...) = sprintf;
+static int (*orign)(char *str, size_t n, const char *fmt, ...) = snprintf;
 
 #if _QRINTF_COUNT_CALL
 size_t _qrintf_call_cnt;
@@ -44,18 +45,23 @@ size_t _qrintf_call_cnt;
 # define CHECK_CALL_COUNT
 #endif
 
-#define CHECK(...) \
+#define _CHECK(fcall, ocall, ...) \
     do { \
         char pbuf[256], qbuf[256]; \
         int plen, qlen; \
         RESET_CALL_COUNT; \
-        plen = orig(pbuf, __VA_ARGS__); \
-        qlen = sprintf(qbuf, __VA_ARGS__); \
+        plen = ocall; \
+        qlen = fcall; \
         CHECK_CALL_COUNT; \
         ok(plen == qlen); \
         ok(strcmp(pbuf, qbuf) == 0); \
         if (plen != qlen || strcmp(pbuf, qbuf) != 0) \
-            printf("# expected: %s, got: %s\n", pbuf, qbuf); \
+            printf("# expected: \"%s\", got: \"%s\"\n", pbuf, qbuf); \
+    } while (0)
+#define CHECK(...) \
+    do { \
+        _CHECK(sprintf(qbuf, __VA_ARGS__), orig(pbuf, __VA_ARGS__)); \
+        _CHECK(snprintf(qbuf, sizeof(qbuf), __VA_ARGS__), orign(pbuf, sizeof(pbuf), __VA_ARGS__)); \
     } while (0)
 
 void test_simple()
