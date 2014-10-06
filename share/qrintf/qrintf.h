@@ -34,9 +34,9 @@ extern "C" {
 #include <string.h>
 
 #undef sprintf
-#define sprintf _qp_sprintf
+#define sprintf(...) _qp_sprintf(__VA_ARGS__)
 #undef snprintf
-#define snprintf _qp_snprintf
+#define snprintf(...) _qp_snprintf(__VA_ARGS__)
 
 #if _QRINTF_COUNT_CALL
 extern size_t _qrintf_call_cnt;

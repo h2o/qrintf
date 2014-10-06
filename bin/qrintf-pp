@@ -53,10 +53,8 @@ $src =~ s{
         " ( (?:\\.|[^\\"])* ) "
         ( (?: \s* , \s* $re_expr )* )
         (\s* \))
-    )|(
-        _qp_sprintf(?![A-Za-z0-9_])
     )
-}{ $9 ? "sprintf" : rewrite('nck', $1, $2, $3, $4, $5, $6, $7, $8) }gxse;
+}{ rewrite('nck', $1, $2, $3, $4, $5, $6, $7, $8) }gxse;
 
 # rewrite snprintf
 $src =~ s{
@@ -70,10 +68,8 @@ $src =~ s{
         " ( (?:\\.|[^\\"])* ) "
         ( (?: \s* , \s* $re_expr )* )
         (\s* \))
-    )|(
-        _qp_snprintf(?![A-Za-z0-9_])
     )
-}{ $9 ? "snprintf" : rewrite('chk', $1, $2, $3, $4, $5, $6, $7, $8) }gxse;
+}{ rewrite('chk', $1, $2, $3, $4, $5, $6, $7, $8) }gxse;
 
 print $src;
 
