@@ -41,13 +41,17 @@ COMMANDS
 
 ### qrintf-gcc
 
-`qrintf-gcc` is a wrapper for GCC.
-It compiles preprocesses the source files using GCC, then applies `qrintf-pp`, and compiles the output using GCC.
+`qrintf-gcc` is the wrapper command for GCC.
+
+It preprocesses the source files using GCC, applies `qrintf-pp`, and compiles the output using GCC.
+
 The command accepts all options that are known by GCC (with the exception of `-no-intgrated-cpp` and `-wrapper`, which are used internally by the command).
 
 ### qrintf-pp
 
-`qrintf-pp` is the filter program that reads a C source file from the standard input, transforms the invocations of `sprintf` to the optimized forms, and prints the result to standard output.
+`qrintf-pp` is the filter program that rewrites invocations of `sprintf` to optimized forms.
+
+The command reads a C source file from the standard input, applies the necessary transformations, and prints the result to standard output.
 
 FAQ
 ---
