@@ -20,7 +20,7 @@ result: 73.150.2.210
 real	0m2.602s
 user	0m2.598s
 sys	0m0.003s
-$ bin/qrintf-gcc -O2 examples/ipv4addr.c
+$ qrintf-gcc -O2 examples/ipv4addr.c
 $ time ./a.out 1234567890
 result: 73.150.2.210
 
@@ -29,12 +29,28 @@ user	0m0.192s
 sys	0m0.003s
 ```
 
-FAQ
+INSTALL
 ---
 
-__Q. How do I use it?__
+```
+make install PREFIX=/usr/local
+```
 
-Use `qrintf-gcc` in place of `gcc`.  `qrintf-gcc` is a wrapper of GCC that applies `qrintf-pp` (a filter that rewrites invocations of sprintf) during compilation.
+COMMANDS
+---
+
+### qrintf-gcc
+
+`qrintf-gcc` is a wrapper for GCC.
+It compiles preprocesses the source files using GCC, then applies `qrintf-pp`, and compiles the output using GCC.
+The command accepts all options that are known by GCC (with the exception of `-no-intgrated-cpp` and `-wrapper`, which are used internally by the command).
+
+### qrintf-pp
+
+`qrintf-pp` is the filter program that reads a C source file from the standard input, transforms the invocations of `sprintf` to the optimized forms, and prints the result to standard output.
+
+FAQ
+---
 
 __Q. Why did you develop qrintf?__
 
