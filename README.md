@@ -49,7 +49,7 @@ __Q. Is there a list of conversion specifiers that get optimized?__
 - `%c`
 - `%s`
 - `%d` (modifiers: `h`, `l`, `ll`)
-- `%u` (modifiers: `h`, `l`, `ll`, `z`)
+- `%u`,`%x`,`%X` (modifiers: `h`, `l`, `ll`, `z`)
 
 Field widths (including `*`) and `0` flag (for zero padding) are also recognized.
 
