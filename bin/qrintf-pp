@@ -23,6 +23,11 @@
 use strict;
 use warnings;
 
+if (@ARGV && $ARGV[0] eq '--version') {
+    print "0.1\n";
+    exit 0;
+}
+
 my $re_expr;
 $re_expr = qr {
     (?:
