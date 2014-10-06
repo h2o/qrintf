@@ -27,7 +27,7 @@ use Text::MicroTemplate qw(build_mt);
 sub build_d {
     return build_mt(template => << 'EOT', escape_func => undef)->(@_);
 ? my ($type, $suffix, $min, $max) = @_;
-static inline int _qrintf_<?= $suffix ?>_core(char *buf, <?= $type ?> v)
+static inline int _qrintf_nck_<?= $suffix ?>_core(char *buf, <?= $type ?> v)
 {
     int i = 0;
     if (v < 0) {
@@ -44,23 +44,23 @@ static inline int _qrintf_<?= $suffix ?>_core(char *buf, <?= $type ?> v)
     return i;
 }
 
-static inline qrintf_t _qrintf_<?= $suffix ?>(qrintf_t ctx, <?= $type ?> v)
+static inline qrintf_nck_t _qrintf_nck_<?= $suffix ?>(qrintf_nck_t ctx, <?= $type ?> v)
 {
     char buf[sizeof(<?= $type ?>) * 3];
     int len;
     if (v < 0)
         ctx.str[ctx.off++] = '-';
-    len = _qrintf_<?= $suffix ?>_core(buf, v);
+    len = _qrintf_nck_<?= $suffix ?>_core(buf, v);
     do {
         ctx.str[ctx.off++] = buf[--len];
     } while (len != 0);
     return ctx;
 }
 
-static inline qrintf_t _qrintf_width_<?= $suffix ?>(qrintf_t ctx, int fill_ch, int width, <?= $type ?> v)
+static inline qrintf_nck_t _qrintf_nck_width_<?= $suffix ?>(qrintf_nck_t ctx, int fill_ch, int width, <?= $type ?> v)
 {
     char buf[sizeof(<?= $type ?>) * 3 + 1];
-    int len = _qrintf_<?= $suffix ?>_core(buf, v);
+    int len = _qrintf_nck_<?= $suffix ?>_core(buf, v);
     if (v < 0) {
         if (fill_ch == ' ') {
             buf[len++] = '-';
@@ -83,7 +83,7 @@ sub build_u {
     my ($type, $suffix, $max, $with_width) = @_;
     return build_mt(template => << 'EOT', escape_func => undef)->($type, $suffix, $max, $with_width ? '_width' : '');
 ? my ($type, $suffix, $max, $width) = @_;
-static inline qrintf_t _qrintf<?= $width ?>_<?= $suffix ?>(qrintf_t ctx<?= $width ? ", int fill_ch, int width" : "" ?>, <?= $type ?> v)
+static inline qrintf_nck_t _qrintf_nck<?= $width ?>_<?= $suffix ?>(qrintf_nck_t ctx<?= $width ? ", int fill_ch, int width" : "" ?>, <?= $type ?> v)
 {
     char tmp[sizeof(<?= $type ?>) * 3];
     int len = 0;
@@ -106,7 +106,7 @@ sub build_x {
     my ($type, $suffix, $with_width) = @_;
     return build_mt(template => << 'EOT', escape_func => undef)->($type, $suffix, $with_width ? '_width' : '');
 ? my ($type, $suffix, $width) = @_;
-static inline qrintf_t _qrintf<?= $width ?>_<?= $suffix ?>(qrintf_t ctx<?= $width ? ", int fill_ch, int width" : "" ?>, <?= $type ?> v)
+static inline qrintf_nck_t _qrintf_nck<?= $width ?>_<?= $suffix ?>(qrintf_nck_t ctx<?= $width ? ", int fill_ch, int width" : "" ?>, <?= $type ?> v)
 {
     int len;
     if (v != 0) {
@@ -182,14 +182,14 @@ extern "C" {
 extern size_t _qrintf_call_cnt;
 #endif
 
-typedef struct qrintf_t {
+typedef struct qrintf_nck_t {
   char *str;
   size_t off;
-} qrintf_t;
+} qrintf_nck_t;
 
-static inline qrintf_t _qrintf_init(char *str)
+static inline qrintf_nck_t _qrintf_nck_init(char *str)
 {
-    struct qrintf_t ret;
+    struct qrintf_nck_t ret;
     ret.str = str;
     ret.off = 0;
 #if _QRINTF_COUNT_CALL
@@ -198,19 +198,19 @@ static inline qrintf_t _qrintf_init(char *str)
     return ret;
 }
 
-static inline int _qrintf_finalize(qrintf_t ctx)
+static inline int _qrintf_nck_finalize(qrintf_nck_t ctx)
 {
     ctx.str[ctx.off] = '\0';
     return (int)ctx.off;
 }
 
-static inline qrintf_t _qrintf_c(qrintf_t ctx, int c)
+static inline qrintf_nck_t _qrintf_nck_c(qrintf_nck_t ctx, int c)
 {
     ctx.str[ctx.off++] = c;
     return ctx;
 }
 
-static inline qrintf_t _qrintf_width_c(qrintf_t ctx, int fill_ch, int width, int c)
+static inline qrintf_nck_t _qrintf_nck_width_c(qrintf_nck_t ctx, int fill_ch, int width, int c)
 {
     for (; 1 < width; --width)
         ctx.str[ctx.off++] = fill_ch;
@@ -218,14 +218,14 @@ static inline qrintf_t _qrintf_width_c(qrintf_t ctx, int fill_ch, int width, int
     return ctx;
 }
 
-static inline qrintf_t _qrintf_s(qrintf_t ctx, const char *s)
+static inline qrintf_nck_t _qrintf_nck_s(qrintf_nck_t ctx, const char *s)
 {
     for (; *s != '\0'; ++s)
         ctx.str[ctx.off++] = *s;
     return ctx;
 }
 
-static inline qrintf_t _qrintf_width_s(qrintf_t ctx, int fill_ch, int width, const char *s)
+static inline qrintf_nck_t _qrintf_nck_width_s(qrintf_nck_t ctx, int fill_ch, int width, const char *s)
 {
     int slen = strlen(s);
     for (; slen < width; --width)
@@ -235,7 +235,7 @@ static inline qrintf_t _qrintf_width_s(qrintf_t ctx, int fill_ch, int width, con
     return ctx;
 }
 
-static inline qrintf_t _qrintf_s_len(qrintf_t ctx, const char *s, size_t l)
+static inline qrintf_nck_t _qrintf_nck_s_len(qrintf_nck_t ctx, const char *s, size_t l)
 {
     for (; l != 0; --l)
         ctx.str[ctx.off++] = *s++;

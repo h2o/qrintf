@@ -58,9 +58,9 @@ sub _append_literal {
     my ($expr, $literal) = @_;
     return $expr
         if length $literal == 0;
-    return "_qrintf_c($expr, '$literal')"
+    return "_qrintf_nck_c($expr, '$literal')"
         if length $literal == 1;
-    return "_qrintf_s_len($expr, \"$literal\", sizeof(\"$literal\") - 1)";
+    return "_qrintf_nck_s_len($expr, \"$literal\", sizeof(\"$literal\") - 1)";
 }
 
 sub rewrite_sprintf {
@@ -73,7 +73,7 @@ sub rewrite_sprintf {
         or return $orig;
 
     # build the expr
-    my $expr = "_qrintf_init($dst)$space_after_dst$space_before_fmt";
+    my $expr = "_qrintf_nck_init($dst)$space_after_dst$space_before_fmt";
     my $literal = '';
     for my $token (split /(%(?:%|-?0?(?:[0-9]+|\*|)(?:(?:h||l|ll|z)[uxX]|(?:h||l|ll)[di]|s|c)))/, $fmt) {
         if ($token =~ /^%(-?)(0?)([0-9]+|\*|)((?:h||l|ll|z)[uxX]|(?:h||l|ll)[di]|s|c)$/) {
@@ -89,9 +89,9 @@ sub rewrite_sprintf {
                     $width = ", $width";
                 }
                 my $pad_ch = $zero_pad ne '' ? '0' : ' ';
-                $expr = "_qrintf_width_$conv($expr, '$pad_ch'$width" . shift(@values) . ")";
+                $expr = "_qrintf_nck_width_$conv($expr, '$pad_ch'$width" . shift(@values) . ")";
             } else {
-                $expr = "_qrintf_$conv($expr" . shift(@values) . ")";
+                $expr = "_qrintf_nck_$conv($expr" . shift(@values) . ")";
             }
         } else {
             $token =~ s/%(.?)/return $orig unless $1 eq '%'; $1/eg;
@@ -99,7 +99,7 @@ sub rewrite_sprintf {
         }
     }
     $expr = _append_literal($expr, $literal);
-    $expr = "_qrintf_finalize$start_brace$expr$end_brace";
+    $expr = "_qrintf_nck_finalize$start_brace$expr$end_brace";
 
     return $expr;
 }

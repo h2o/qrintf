@@ -40,14 +40,14 @@ extern "C" {
 extern size_t _qrintf_call_cnt;
 #endif
 
-typedef struct qrintf_t {
+typedef struct qrintf_nck_t {
   char *str;
   size_t off;
-} qrintf_t;
+} qrintf_nck_t;
 
-static inline qrintf_t _qrintf_init(char *str)
+static inline qrintf_nck_t _qrintf_nck_init(char *str)
 {
-    struct qrintf_t ret;
+    struct qrintf_nck_t ret;
     ret.str = str;
     ret.off = 0;
 #if _QRINTF_COUNT_CALL
@@ -56,19 +56,19 @@ static inline qrintf_t _qrintf_init(char *str)
     return ret;
 }
 
-static inline int _qrintf_finalize(qrintf_t ctx)
+static inline int _qrintf_nck_finalize(qrintf_nck_t ctx)
 {
     ctx.str[ctx.off] = '\0';
     return (int)ctx.off;
 }
 
-static inline qrintf_t _qrintf_c(qrintf_t ctx, int c)
+static inline qrintf_nck_t _qrintf_nck_c(qrintf_nck_t ctx, int c)
 {
     ctx.str[ctx.off++] = c;
     return ctx;
 }
 
-static inline qrintf_t _qrintf_width_c(qrintf_t ctx, int fill_ch, int width, int c)
+static inline qrintf_nck_t _qrintf_nck_width_c(qrintf_nck_t ctx, int fill_ch, int width, int c)
 {
     for (; 1 < width; --width)
         ctx.str[ctx.off++] = fill_ch;
@@ -76,14 +76,14 @@ static inline qrintf_t _qrintf_width_c(qrintf_t ctx, int fill_ch, int width, int
     return ctx;
 }
 
-static inline qrintf_t _qrintf_s(qrintf_t ctx, const char *s)
+static inline qrintf_nck_t _qrintf_nck_s(qrintf_nck_t ctx, const char *s)
 {
     for (; *s != '\0'; ++s)
         ctx.str[ctx.off++] = *s;
     return ctx;
 }
 
-static inline qrintf_t _qrintf_width_s(qrintf_t ctx, int fill_ch, int width, const char *s)
+static inline qrintf_nck_t _qrintf_nck_width_s(qrintf_nck_t ctx, int fill_ch, int width, const char *s)
 {
     int slen = strlen(s);
     for (; slen < width; --width)
@@ -93,14 +93,14 @@ static inline qrintf_t _qrintf_width_s(qrintf_t ctx, int fill_ch, int width, con
     return ctx;
 }
 
-static inline qrintf_t _qrintf_s_len(qrintf_t ctx, const char *s, size_t l)
+static inline qrintf_nck_t _qrintf_nck_s_len(qrintf_nck_t ctx, const char *s, size_t l)
 {
     for (; l != 0; --l)
         ctx.str[ctx.off++] = *s++;
     return ctx;
 }
 
-static inline int _qrintf_hd_core(char *buf, short v)
+static inline int _qrintf_nck_hd_core(char *buf, short v)
 {
     int i = 0;
     if (v < 0) {
@@ -117,23 +117,23 @@ static inline int _qrintf_hd_core(char *buf, short v)
     return i;
 }
 
-static inline qrintf_t _qrintf_hd(qrintf_t ctx, short v)
+static inline qrintf_nck_t _qrintf_nck_hd(qrintf_nck_t ctx, short v)
 {
     char buf[sizeof(short) * 3];
     int len;
     if (v < 0)
         ctx.str[ctx.off++] = '-';
-    len = _qrintf_hd_core(buf, v);
+    len = _qrintf_nck_hd_core(buf, v);
     do {
         ctx.str[ctx.off++] = buf[--len];
     } while (len != 0);
     return ctx;
 }
 
-static inline qrintf_t _qrintf_width_hd(qrintf_t ctx, int fill_ch, int width, short v)
+static inline qrintf_nck_t _qrintf_nck_width_hd(qrintf_nck_t ctx, int fill_ch, int width, short v)
 {
     char buf[sizeof(short) * 3 + 1];
-    int len = _qrintf_hd_core(buf, v);
+    int len = _qrintf_nck_hd_core(buf, v);
     if (v < 0) {
         if (fill_ch == ' ') {
             buf[len++] = '-';
@@ -150,7 +150,7 @@ static inline qrintf_t _qrintf_width_hd(qrintf_t ctx, int fill_ch, int width, sh
     return ctx;
 }
 
-static inline int _qrintf_d_core(char *buf, int v)
+static inline int _qrintf_nck_d_core(char *buf, int v)
 {
     int i = 0;
     if (v < 0) {
@@ -167,23 +167,23 @@ static inline int _qrintf_d_core(char *buf, int v)
     return i;
 }
 
-static inline qrintf_t _qrintf_d(qrintf_t ctx, int v)
+static inline qrintf_nck_t _qrintf_nck_d(qrintf_nck_t ctx, int v)
 {
     char buf[sizeof(int) * 3];
     int len;
     if (v < 0)
         ctx.str[ctx.off++] = '-';
-    len = _qrintf_d_core(buf, v);
+    len = _qrintf_nck_d_core(buf, v);
     do {
         ctx.str[ctx.off++] = buf[--len];
     } while (len != 0);
     return ctx;
 }
 
-static inline qrintf_t _qrintf_width_d(qrintf_t ctx, int fill_ch, int width, int v)
+static inline qrintf_nck_t _qrintf_nck_width_d(qrintf_nck_t ctx, int fill_ch, int width, int v)
 {
     char buf[sizeof(int) * 3 + 1];
-    int len = _qrintf_d_core(buf, v);
+    int len = _qrintf_nck_d_core(buf, v);
     if (v < 0) {
         if (fill_ch == ' ') {
             buf[len++] = '-';
@@ -200,7 +200,7 @@ static inline qrintf_t _qrintf_width_d(qrintf_t ctx, int fill_ch, int width, int
     return ctx;
 }
 
-static inline int _qrintf_ld_core(char *buf, long v)
+static inline int _qrintf_nck_ld_core(char *buf, long v)
 {
     int i = 0;
     if (v < 0) {
@@ -217,23 +217,23 @@ static inline int _qrintf_ld_core(char *buf, long v)
     return i;
 }
 
-static inline qrintf_t _qrintf_ld(qrintf_t ctx, long v)
+static inline qrintf_nck_t _qrintf_nck_ld(qrintf_nck_t ctx, long v)
 {
     char buf[sizeof(long) * 3];
     int len;
     if (v < 0)
         ctx.str[ctx.off++] = '-';
-    len = _qrintf_ld_core(buf, v);
+    len = _qrintf_nck_ld_core(buf, v);
     do {
         ctx.str[ctx.off++] = buf[--len];
     } while (len != 0);
     return ctx;
 }
 
-static inline qrintf_t _qrintf_width_ld(qrintf_t ctx, int fill_ch, int width, long v)
+static inline qrintf_nck_t _qrintf_nck_width_ld(qrintf_nck_t ctx, int fill_ch, int width, long v)
 {
     char buf[sizeof(long) * 3 + 1];
-    int len = _qrintf_ld_core(buf, v);
+    int len = _qrintf_nck_ld_core(buf, v);
     if (v < 0) {
         if (fill_ch == ' ') {
             buf[len++] = '-';
@@ -250,7 +250,7 @@ static inline qrintf_t _qrintf_width_ld(qrintf_t ctx, int fill_ch, int width, lo
     return ctx;
 }
 
-static inline int _qrintf_lld_core(char *buf, long long v)
+static inline int _qrintf_nck_lld_core(char *buf, long long v)
 {
     int i = 0;
     if (v < 0) {
@@ -267,23 +267,23 @@ static inline int _qrintf_lld_core(char *buf, long long v)
     return i;
 }
 
-static inline qrintf_t _qrintf_lld(qrintf_t ctx, long long v)
+static inline qrintf_nck_t _qrintf_nck_lld(qrintf_nck_t ctx, long long v)
 {
     char buf[sizeof(long long) * 3];
     int len;
     if (v < 0)
         ctx.str[ctx.off++] = '-';
-    len = _qrintf_lld_core(buf, v);
+    len = _qrintf_nck_lld_core(buf, v);
     do {
         ctx.str[ctx.off++] = buf[--len];
     } while (len != 0);
     return ctx;
 }
 
-static inline qrintf_t _qrintf_width_lld(qrintf_t ctx, int fill_ch, int width, long long v)
+static inline qrintf_nck_t _qrintf_nck_width_lld(qrintf_nck_t ctx, int fill_ch, int width, long long v)
 {
     char buf[sizeof(long long) * 3 + 1];
-    int len = _qrintf_lld_core(buf, v);
+    int len = _qrintf_nck_lld_core(buf, v);
     if (v < 0) {
         if (fill_ch == ' ') {
             buf[len++] = '-';
@@ -300,7 +300,7 @@ static inline qrintf_t _qrintf_width_lld(qrintf_t ctx, int fill_ch, int width, l
     return ctx;
 }
 
-static inline qrintf_t _qrintf_hu(qrintf_t ctx, unsigned short v)
+static inline qrintf_nck_t _qrintf_nck_hu(qrintf_nck_t ctx, unsigned short v)
 {
     char tmp[sizeof(unsigned short) * 3];
     int len = 0;
@@ -313,7 +313,7 @@ static inline qrintf_t _qrintf_hu(qrintf_t ctx, unsigned short v)
     return ctx;
 }
 
-static inline qrintf_t _qrintf_u(qrintf_t ctx, unsigned v)
+static inline qrintf_nck_t _qrintf_nck_u(qrintf_nck_t ctx, unsigned v)
 {
     char tmp[sizeof(unsigned) * 3];
     int len = 0;
@@ -326,7 +326,7 @@ static inline qrintf_t _qrintf_u(qrintf_t ctx, unsigned v)
     return ctx;
 }
 
-static inline qrintf_t _qrintf_lu(qrintf_t ctx, unsigned long v)
+static inline qrintf_nck_t _qrintf_nck_lu(qrintf_nck_t ctx, unsigned long v)
 {
     char tmp[sizeof(unsigned long) * 3];
     int len = 0;
@@ -339,7 +339,7 @@ static inline qrintf_t _qrintf_lu(qrintf_t ctx, unsigned long v)
     return ctx;
 }
 
-static inline qrintf_t _qrintf_llu(qrintf_t ctx, unsigned long long v)
+static inline qrintf_nck_t _qrintf_nck_llu(qrintf_nck_t ctx, unsigned long long v)
 {
     char tmp[sizeof(unsigned long long) * 3];
     int len = 0;
@@ -352,7 +352,7 @@ static inline qrintf_t _qrintf_llu(qrintf_t ctx, unsigned long long v)
     return ctx;
 }
 
-static inline qrintf_t _qrintf_zu(qrintf_t ctx, size_t v)
+static inline qrintf_nck_t _qrintf_nck_zu(qrintf_nck_t ctx, size_t v)
 {
     char tmp[sizeof(size_t) * 3];
     int len = 0;
@@ -365,7 +365,7 @@ static inline qrintf_t _qrintf_zu(qrintf_t ctx, size_t v)
     return ctx;
 }
 
-static inline qrintf_t _qrintf_width_hu(qrintf_t ctx, int fill_ch, int width, unsigned short v)
+static inline qrintf_nck_t _qrintf_nck_width_hu(qrintf_nck_t ctx, int fill_ch, int width, unsigned short v)
 {
     char tmp[sizeof(unsigned short) * 3];
     int len = 0;
@@ -380,7 +380,7 @@ static inline qrintf_t _qrintf_width_hu(qrintf_t ctx, int fill_ch, int width, un
     return ctx;
 }
 
-static inline qrintf_t _qrintf_width_u(qrintf_t ctx, int fill_ch, int width, unsigned v)
+static inline qrintf_nck_t _qrintf_nck_width_u(qrintf_nck_t ctx, int fill_ch, int width, unsigned v)
 {
     char tmp[sizeof(unsigned) * 3];
     int len = 0;
@@ -395,7 +395,7 @@ static inline qrintf_t _qrintf_width_u(qrintf_t ctx, int fill_ch, int width, uns
     return ctx;
 }
 
-static inline qrintf_t _qrintf_width_lu(qrintf_t ctx, int fill_ch, int width, unsigned long v)
+static inline qrintf_nck_t _qrintf_nck_width_lu(qrintf_nck_t ctx, int fill_ch, int width, unsigned long v)
 {
     char tmp[sizeof(unsigned long) * 3];
     int len = 0;
@@ -410,7 +410,7 @@ static inline qrintf_t _qrintf_width_lu(qrintf_t ctx, int fill_ch, int width, un
     return ctx;
 }
 
-static inline qrintf_t _qrintf_width_llu(qrintf_t ctx, int fill_ch, int width, unsigned long long v)
+static inline qrintf_nck_t _qrintf_nck_width_llu(qrintf_nck_t ctx, int fill_ch, int width, unsigned long long v)
 {
     char tmp[sizeof(unsigned long long) * 3];
     int len = 0;
@@ -425,7 +425,7 @@ static inline qrintf_t _qrintf_width_llu(qrintf_t ctx, int fill_ch, int width, u
     return ctx;
 }
 
-static inline qrintf_t _qrintf_width_zu(qrintf_t ctx, int fill_ch, int width, size_t v)
+static inline qrintf_nck_t _qrintf_nck_width_zu(qrintf_nck_t ctx, int fill_ch, int width, size_t v)
 {
     char tmp[sizeof(size_t) * 3];
     int len = 0;
@@ -441,7 +441,7 @@ static inline qrintf_t _qrintf_width_zu(qrintf_t ctx, int fill_ch, int width, si
 }
 
 
-static inline qrintf_t _qrintf_hx(qrintf_t ctx, unsigned short v)
+static inline qrintf_nck_t _qrintf_nck_hx(qrintf_nck_t ctx, unsigned short v)
 {
     int len;
     if (v != 0) {
@@ -464,7 +464,7 @@ static inline qrintf_t _qrintf_hx(qrintf_t ctx, unsigned short v)
     return ctx;
 }
 
-static inline qrintf_t _qrintf_x(qrintf_t ctx, unsigned v)
+static inline qrintf_nck_t _qrintf_nck_x(qrintf_nck_t ctx, unsigned v)
 {
     int len;
     if (v != 0) {
@@ -487,7 +487,7 @@ static inline qrintf_t _qrintf_x(qrintf_t ctx, unsigned v)
     return ctx;
 }
 
-static inline qrintf_t _qrintf_lx(qrintf_t ctx, unsigned long v)
+static inline qrintf_nck_t _qrintf_nck_lx(qrintf_nck_t ctx, unsigned long v)
 {
     int len;
     if (v != 0) {
@@ -510,7 +510,7 @@ static inline qrintf_t _qrintf_lx(qrintf_t ctx, unsigned long v)
     return ctx;
 }
 
-static inline qrintf_t _qrintf_llx(qrintf_t ctx, unsigned long long v)
+static inline qrintf_nck_t _qrintf_nck_llx(qrintf_nck_t ctx, unsigned long long v)
 {
     int len;
     if (v != 0) {
@@ -533,7 +533,7 @@ static inline qrintf_t _qrintf_llx(qrintf_t ctx, unsigned long long v)
     return ctx;
 }
 
-static inline qrintf_t _qrintf_zx(qrintf_t ctx, size_t v)
+static inline qrintf_nck_t _qrintf_nck_zx(qrintf_nck_t ctx, size_t v)
 {
     int len;
     if (v != 0) {
@@ -556,7 +556,7 @@ static inline qrintf_t _qrintf_zx(qrintf_t ctx, size_t v)
     return ctx;
 }
 
-static inline qrintf_t _qrintf_width_hx(qrintf_t ctx, int fill_ch, int width, unsigned short v)
+static inline qrintf_nck_t _qrintf_nck_width_hx(qrintf_nck_t ctx, int fill_ch, int width, unsigned short v)
 {
     int len;
     if (v != 0) {
@@ -581,7 +581,7 @@ static inline qrintf_t _qrintf_width_hx(qrintf_t ctx, int fill_ch, int width, un
     return ctx;
 }
 
-static inline qrintf_t _qrintf_width_x(qrintf_t ctx, int fill_ch, int width, unsigned v)
+static inline qrintf_nck_t _qrintf_nck_width_x(qrintf_nck_t ctx, int fill_ch, int width, unsigned v)
 {
     int len;
     if (v != 0) {
@@ -606,7 +606,7 @@ static inline qrintf_t _qrintf_width_x(qrintf_t ctx, int fill_ch, int width, uns
     return ctx;
 }
 
-static inline qrintf_t _qrintf_width_lx(qrintf_t ctx, int fill_ch, int width, unsigned long v)
+static inline qrintf_nck_t _qrintf_nck_width_lx(qrintf_nck_t ctx, int fill_ch, int width, unsigned long v)
 {
     int len;
     if (v != 0) {
@@ -631,7 +631,7 @@ static inline qrintf_t _qrintf_width_lx(qrintf_t ctx, int fill_ch, int width, un
     return ctx;
 }
 
-static inline qrintf_t _qrintf_width_llx(qrintf_t ctx, int fill_ch, int width, unsigned long long v)
+static inline qrintf_nck_t _qrintf_nck_width_llx(qrintf_nck_t ctx, int fill_ch, int width, unsigned long long v)
 {
     int len;
     if (v != 0) {
@@ -656,7 +656,7 @@ static inline qrintf_t _qrintf_width_llx(qrintf_t ctx, int fill_ch, int width, u
     return ctx;
 }
 
-static inline qrintf_t _qrintf_width_zx(qrintf_t ctx, int fill_ch, int width, size_t v)
+static inline qrintf_nck_t _qrintf_nck_width_zx(qrintf_nck_t ctx, int fill_ch, int width, size_t v)
 {
     int len;
     if (v != 0) {
@@ -681,7 +681,7 @@ static inline qrintf_t _qrintf_width_zx(qrintf_t ctx, int fill_ch, int width, si
     return ctx;
 }
 
-static inline qrintf_t _qrintf_hX(qrintf_t ctx, unsigned short v)
+static inline qrintf_nck_t _qrintf_nck_hX(qrintf_nck_t ctx, unsigned short v)
 {
     int len;
     if (v != 0) {
@@ -704,7 +704,7 @@ static inline qrintf_t _qrintf_hX(qrintf_t ctx, unsigned short v)
     return ctx;
 }
 
-static inline qrintf_t _qrintf_X(qrintf_t ctx, unsigned v)
+static inline qrintf_nck_t _qrintf_nck_X(qrintf_nck_t ctx, unsigned v)
 {
     int len;
     if (v != 0) {
@@ -727,7 +727,7 @@ static inline qrintf_t _qrintf_X(qrintf_t ctx, unsigned v)
     return ctx;
 }
 
-static inline qrintf_t _qrintf_lX(qrintf_t ctx, unsigned long v)
+static inline qrintf_nck_t _qrintf_nck_lX(qrintf_nck_t ctx, unsigned long v)
 {
     int len;
     if (v != 0) {
@@ -750,7 +750,7 @@ static inline qrintf_t _qrintf_lX(qrintf_t ctx, unsigned long v)
     return ctx;
 }
 
-static inline qrintf_t _qrintf_llX(qrintf_t ctx, unsigned long long v)
+static inline qrintf_nck_t _qrintf_nck_llX(qrintf_nck_t ctx, unsigned long long v)
 {
     int len;
     if (v != 0) {
@@ -773,7 +773,7 @@ static inline qrintf_t _qrintf_llX(qrintf_t ctx, unsigned long long v)
     return ctx;
 }
 
-static inline qrintf_t _qrintf_zX(qrintf_t ctx, size_t v)
+static inline qrintf_nck_t _qrintf_nck_zX(qrintf_nck_t ctx, size_t v)
 {
     int len;
     if (v != 0) {
@@ -796,7 +796,7 @@ static inline qrintf_t _qrintf_zX(qrintf_t ctx, size_t v)
     return ctx;
 }
 
-static inline qrintf_t _qrintf_width_hX(qrintf_t ctx, int fill_ch, int width, unsigned short v)
+static inline qrintf_nck_t _qrintf_nck_width_hX(qrintf_nck_t ctx, int fill_ch, int width, unsigned short v)
 {
     int len;
     if (v != 0) {
@@ -821,7 +821,7 @@ static inline qrintf_t _qrintf_width_hX(qrintf_t ctx, int fill_ch, int width, un
     return ctx;
 }
 
-static inline qrintf_t _qrintf_width_X(qrintf_t ctx, int fill_ch, int width, unsigned v)
+static inline qrintf_nck_t _qrintf_nck_width_X(qrintf_nck_t ctx, int fill_ch, int width, unsigned v)
 {
     int len;
     if (v != 0) {
@@ -846,7 +846,7 @@ static inline qrintf_t _qrintf_width_X(qrintf_t ctx, int fill_ch, int width, uns
     return ctx;
 }
 
-static inline qrintf_t _qrintf_width_lX(qrintf_t ctx, int fill_ch, int width, unsigned long v)
+static inline qrintf_nck_t _qrintf_nck_width_lX(qrintf_nck_t ctx, int fill_ch, int width, unsigned long v)
 {
     int len;
     if (v != 0) {
@@ -871,7 +871,7 @@ static inline qrintf_t _qrintf_width_lX(qrintf_t ctx, int fill_ch, int width, un
     return ctx;
 }
 
-static inline qrintf_t _qrintf_width_llX(qrintf_t ctx, int fill_ch, int width, unsigned long long v)
+static inline qrintf_nck_t _qrintf_nck_width_llX(qrintf_nck_t ctx, int fill_ch, int width, unsigned long long v)
 {
     int len;
     if (v != 0) {
@@ -896,7 +896,7 @@ static inline qrintf_t _qrintf_width_llX(qrintf_t ctx, int fill_ch, int width, u
     return ctx;
 }
 
-static inline qrintf_t _qrintf_width_zX(qrintf_t ctx, int fill_ch, int width, size_t v)
+static inline qrintf_nck_t _qrintf_nck_width_zX(qrintf_nck_t ctx, int fill_ch, int width, size_t v)
 {
     int len;
     if (v != 0) {
