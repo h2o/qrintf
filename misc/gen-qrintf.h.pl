@@ -298,10 +298,7 @@ static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?>_width_s(qrintf_<?= $c
 {
     int slen = strlen(s);
     ctx = _qrintf_<?= $check ?>_fill(ctx, fill_ch, slen, width);
-    for (; slen != 0; --slen) {
-        <?= $push->(q{*s++}) ?>;
-    }
-    return ctx;
+    return _qrintf_<?= $check ?>_s_len(ctx, s, slen);
 }
 ? }
 

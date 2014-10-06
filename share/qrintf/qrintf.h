@@ -161,10 +161,7 @@ static inline qrintf_nck_t _qrintf_nck_width_s(qrintf_nck_t ctx, int fill_ch, in
 {
     int slen = strlen(s);
     ctx = _qrintf_nck_fill(ctx, fill_ch, slen, width);
-    for (; slen != 0; --slen) {
-        ctx.str[ctx.off++] = *s++;
-    }
-    return ctx;
+    return _qrintf_nck_s_len(ctx, s, slen);
 }
 static inline qrintf_chk_t _qrintf_chk_c(qrintf_chk_t ctx, int c)
 {
@@ -191,10 +188,7 @@ static inline qrintf_chk_t _qrintf_chk_width_s(qrintf_chk_t ctx, int fill_ch, in
 {
     int slen = strlen(s);
     ctx = _qrintf_chk_fill(ctx, fill_ch, slen, width);
-    for (; slen != 0; --slen) {
-        do { int ch = *s++; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
-    }
-    return ctx;
+    return _qrintf_chk_s_len(ctx, s, slen);
 }
 
 static inline char *_qrintf_hd_core(char *p, short v)
