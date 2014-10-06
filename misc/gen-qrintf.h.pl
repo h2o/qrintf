@@ -240,6 +240,29 @@ static inline int _qrintf_chk_finalize(qrintf_chk_t ctx)
     return (int)ctx.off;
 }
 
+static inline qrintf_nck_t _qrintf_nck_s_len(qrintf_nck_t ctx, const char *s, size_t l)
+{
+    for (; l != 0; --l)
+        ctx.str[ctx.off++] = *s++;
+    return ctx;
+}
+
+static inline qrintf_chk_t _qrintf_chk_s_len(qrintf_chk_t ctx, const char *s, size_t l)
+{
+    size_t off = ctx.off;
+    ctx.off += l;
+    if (off + l <= ctx.size) {
+    } else if (off < ctx.size) {
+        l = ctx.size - off;
+    } else {
+        goto Exit;
+    }
+    for (; l != 0; --l)
+        ctx.str[off++] = *s++;
+Exit:
+    return ctx;
+}
+
 ? for my $check (qw(nck chk)) {
 ?   my $push = $check eq 'chk' ? sub { "do { int ch = $_[0]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0)" } : sub { "ctx.str[ctx.off++] = $_[0]" };
 static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?>_c(qrintf_<?= $check ?>_t ctx, int c)
@@ -272,14 +295,6 @@ static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?>_width_s(qrintf_<?= $c
         <?= $push->(q{fill_ch}) ?>;
     }
     for (; slen != 0; --slen) {
-        <?= $push->(q{*s++}) ?>;
-    }
-    return ctx;
-}
-
-static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?>_s_len(qrintf_<?= $check ?>_t ctx, const char *s, size_t l)
-{
-    for (; l != 0; --l) {
         <?= $push->(q{*s++}) ?>;
     }
     return ctx;

@@ -88,6 +88,29 @@ static inline int _qrintf_chk_finalize(qrintf_chk_t ctx)
     return (int)ctx.off;
 }
 
+static inline qrintf_nck_t _qrintf_nck_s_len(qrintf_nck_t ctx, const char *s, size_t l)
+{
+    for (; l != 0; --l)
+        ctx.str[ctx.off++] = *s++;
+    return ctx;
+}
+
+static inline qrintf_chk_t _qrintf_chk_s_len(qrintf_chk_t ctx, const char *s, size_t l)
+{
+    size_t off = ctx.off;
+    ctx.off += l;
+    if (off + l <= ctx.size) {
+    } else if (off < ctx.size) {
+        l = ctx.size - off;
+    } else {
+        goto Exit;
+    }
+    for (; l != 0; --l)
+        ctx.str[off++] = *s++;
+Exit:
+    return ctx;
+}
+
 static inline qrintf_nck_t _qrintf_nck_c(qrintf_nck_t ctx, int c)
 {
     ctx.str[ctx.off++] = c;
@@ -122,14 +145,6 @@ static inline qrintf_nck_t _qrintf_nck_width_s(qrintf_nck_t ctx, int fill_ch, in
     }
     return ctx;
 }
-
-static inline qrintf_nck_t _qrintf_nck_s_len(qrintf_nck_t ctx, const char *s, size_t l)
-{
-    for (; l != 0; --l) {
-        ctx.str[ctx.off++] = *s++;
-    }
-    return ctx;
-}
 static inline qrintf_chk_t _qrintf_chk_c(qrintf_chk_t ctx, int c)
 {
     do { int ch = c; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
@@ -160,14 +175,6 @@ static inline qrintf_chk_t _qrintf_chk_width_s(qrintf_chk_t ctx, int fill_ch, in
         do { int ch = fill_ch; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
     }
     for (; slen != 0; --slen) {
-        do { int ch = *s++; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
-    }
-    return ctx;
-}
-
-static inline qrintf_chk_t _qrintf_chk_s_len(qrintf_chk_t ctx, const char *s, size_t l)
-{
-    for (; l != 0; --l) {
         do { int ch = *s++; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
     }
     return ctx;
