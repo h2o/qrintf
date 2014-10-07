@@ -131,7 +131,10 @@ void test_simple()
     CHECK_MULTI(unsigned, "%7x", 0, UINT_MAX);
     CHECK_MULTI(unsigned, "%07x", 0, UINT_MAX);
 
-    CHECK_SNPRINTF(8, "%s", "abcdef");
+    CHECK_SNPRINTF(8, "%s", "abcdef"); /* below the bounds */
+    CHECK_SNPRINTF(8, "1234%s", "abcdef"); /* partial write */
+    CHECK_SNPRINTF(8, "1234567890%s", "abcdef"); /* no write */
+
     CHECK_SNPRINTF(3, "%d", 12345);
     CHECK_SNPRINTF(10, "%u.%u.%u.%u", 12, 34, 56, 78);
     CHECK_SNPRINTF(3, "%x", 0xffff);
