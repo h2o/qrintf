@@ -24,7 +24,7 @@ use strict;
 use warnings;
 
 if (@ARGV && $ARGV[0] eq '--version') {
-    print "0.1\n";
+    print "v0.9.0\n";
     exit 0;
 }
 
