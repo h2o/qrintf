@@ -86,3 +86,7 @@ note: The test invokes `qrintf-gcc` which in turn invokes `gcc`.  So GCC should 
 __Q. Shouldn't such feature be implemented in the compiler?__
 
 Agreed.
+
+__Q. Where can I find more information?__
+
+Please refer to [the developer's weblog](http://blog.kazuhooku.com/search/label/qrintf).
