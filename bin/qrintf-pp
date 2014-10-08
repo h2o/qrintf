@@ -42,7 +42,7 @@ $re_expr = qr {
 my $src = join '', <STDIN>;
 
 # rewrite sn?printf
-my @blocks = split /((?:_qp_|)sn?printf)/, $src;
+my @blocks = split /((?:_qp_|)sn?printf|sqlite3_snprintf)/, $src;
 $src = '';
 while (@blocks) {
     my $block = shift @blocks;
@@ -77,6 +77,21 @@ while (@blocks) {
             $src .= rewrite('chk', "$block$&", $1, $2, $3, $4, $5, $6, $7);
         } else {
             $src .= 'snprintf';
+        }
+    } elsif ($block eq 'sqlite3_snprintf') {
+        if ($blocks[0] =~ m{^
+            (\s* \( \s*)
+            ($re_expr) (\s* , \s*) ($re_expr)
+            (\s*),
+            (\s*)
+            " ( (?:\\.|[^\\"])* ) "
+            ( (?: \s* , \s* $re_expr )* )
+            (\s* \))
+        }xs) {
+            $blocks[0] = $';
+            $src .= rewrite('chk', "$block$&", $1, "$4$3$2", $5, $6, $7, $8, $9);
+        } else {
+            $src .= $block;
         }
     } else {
         $src .= $block;
