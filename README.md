@@ -1,7 +1,7 @@
 qrintf - sprintf accelerator
 ======
 
-[![Build Status](https://travis-ci.org/kazuho/qrintf.svg?branch=master)](https://travis-ci.org/kazuho/qrintf)
+[![Build Status](https://travis-ci.org/h2o/qrintf.svg?branch=master)](https://travis-ci.org/h2o/qrintf)
 
 The sprintf(3) family is a great set of functions for stringifying various kinds of data.
 The drawback is that they are slow.
@@ -58,7 +58,7 @@ FAQ
 
 __Q. Why did you develop qrintf?__
 
-Because sprintf is the bottleneck in some of my applications.  I plan to use it in [H2O](https://github.com/kazuho/h2o), an optimized HTTP server/library implementation with support for HTTP/1.x, HTTP/2, websocket.
+Because sprintf is the bottleneck in some of my applications.  I plan to use it in [H2O](https://github.com/h2o/h2o), an optimized HTTP server/library implementation with support for HTTP/1.x, HTTP/2, websocket.
 
 __Q. Which functions are optimized?__
 
