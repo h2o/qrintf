@@ -288,7 +288,7 @@ static inline qrintf_chk_t _qrintf_chk_int_core(qrintf_chk_t ctx, int fill_ch, i
     int len = _qrintf_ilog10ull(val);
     int wlen = len;
     if (ctx.off + wlen + sign > ctx.size) {
-        int n = ctx.off + wlen + sign - ctx.size - 1;
+        int n = ctx.off + wlen + sign - ctx.size;
         wlen -= n;
         while (n-- != 0) {
             val /= 10;
