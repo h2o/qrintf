@@ -27,70 +27,73 @@ use Text::MicroTemplate qw(build_mt);
 sub build_d {
     return build_mt(template => << 'EOT', escape_func => undef)->(@_);
 ? my ($check, $type, $suffix, $min, $max) = @_;
-? if ($check eq 'nck') {
-static inline char *_qrintf_<?= $suffix ?>_core(char *p, <?= $type ?> v)
-{
-    if (v < 0) {
-        if (v == <?= $min ?>) {
-            *--p = '1' + <?= $max ?> % 10;
-            v = <?= $max ?> / 10;
-        } else {
-            v = -v;
-        }
-    }
-    do {
-        *--p = '0' + v % 10;
-    } while ((v /= 10) != 0);
-    return p;
-}
-? }
-? my $push = $check eq 'chk' ? sub { "do { int ch = $_[0]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0)" } : sub { "ctx.str[ctx.off++] = $_[0]" };
-
 static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?>_<?= $suffix ?>(qrintf_<?= $check ?>_t ctx, <?= $type ?> v)
 {
-    char buf[sizeof(<?= $type ?>) * 3], *p;
+    unsigned <?= $type ?> val = v;
+    int sign = v < 0;
     if (v < 0) {
-        <?= $push->(q{'-'}) ?>;
+        if (v == <?= $min ?>) {
+            val = (unsigned <?= $type ?>)(<?= $max ?>) + 1;
+        } else {
+            val = (unsigned <?= $type ?>)(-v);
+        }
     }
-    p = _qrintf_<?= $suffix ?>_core(buf + sizeof(buf), v);
-    return _qrintf_<?= $check ?>_s_len(ctx, p, buf + sizeof(buf) - p);
+    if (sizeof(<?= $type ?>) < sizeof(long long)) {
+        return _qrintf_<?= $check ?>_long_core(ctx, 0, 0, (unsigned long)val, sign);
+    }
+    else {
+        assert(sizeof(<?= $type ?>) == sizeof(long long));
+        return _qrintf_<?= $check ?>_long_long_core(ctx, 0, 0, (unsigned long long)val, sign);
+    }
 }
 
 static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?>_width_<?= $suffix ?>(qrintf_<?= $check ?>_t ctx, int fill_ch, int width, <?= $type ?> v)
 {
-    char buf[sizeof(<?= $type ?>) * 3 + 1], *p = _qrintf_<?= $suffix ?>_core(buf + sizeof(buf), v);
-    int len;
+    unsigned <?= $type ?> val = v;
+    int sign = v < 0;
     if (v < 0) {
-        if (fill_ch == ' ') {
-            *--p = '-';
+        if (v == <?= $min ?>) {
+            val = (unsigned <?= $type ?>)(<?= $max ?>) + 1;
         } else {
-            <?= $push->(q{'-'}) ?>;
-            --width;
+            val = (unsigned <?= $type ?>)(-v);
         }
     }
-    len = buf + sizeof(buf) - p;
-    ctx = _qrintf_<?= $check ?>_fill(ctx, fill_ch, len, width);
-    return _qrintf_<?= $check ?>_s_len(ctx, p, len);
+    if (sizeof(<?= $type ?>) < sizeof(long long)) {
+        return _qrintf_<?= $check ?>_long_core(ctx, fill_ch, width, (unsigned long)val, sign);
+    }
+    else {
+        assert(sizeof(<?= $type ?>) == sizeof(long long));
+        return _qrintf_<?= $check ?>_long_long_core(ctx, fill_ch, width, (unsigned long long)val, sign);
+    }
 }
 EOT
 }
 
 sub build_u {
-    my ($check, $type, $suffix, $max, $with_width) = @_;
-    return build_mt(template => << 'EOT', escape_func => undef)->($check, $type, $suffix, $max, $with_width ? '_width' : '');
-? my ($check, $type, $suffix, $max, $width) = @_;
-static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?><?= $width ?>_<?= $suffix ?>(qrintf_<?= $check ?>_t ctx<?= $width ? ", int fill_ch, int width" : "" ?>, <?= $type ?> v)
+    my ($check, $type, $suffix, $max) = @_;
+    return build_mt(template => << 'EOT', escape_func => undef)->($check, $type, $suffix, $max);
+? my ($check, $type, $suffix, $max) = @_;
+
+static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?>_<?= $suffix ?>(qrintf_<?= $check ?>_t ctx, <?= $type ?> v)
 {
-    char tmp[sizeof(<?= $type ?>) * 3], *p = tmp + sizeof(tmp);
-    int len;
-    do {
-        *--p = '0' + v % 10;
-    } while ((v /= 10) != 0);
-    len = tmp + sizeof(tmp) - p;
-? if ($width) {
-    ctx = _qrintf_<?= $check ?>_fill(ctx, fill_ch, len, width);
-? }
-    return _qrintf_<?= $check ?>_s_len(ctx, p, len);
+    if (sizeof(<?= $type ?>) < sizeof(long long)) {
+        return _qrintf_<?= $check ?>_long_core(ctx, 0, 0, (unsigned long)v, 0);
+    }
+    else {
+        assert(sizeof(<?= $type ?>) == sizeof(long long));
+        return _qrintf_<?= $check ?>_long_long_core(ctx, 0, 0, (unsigned long long)v, 0);
+    }
+}
+
+static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?>_width_<?= $suffix ?>(qrintf_<?= $check ?>_t ctx, int fill_ch, int width, <?= $type ?> v)
+{
+    if (sizeof(<?= $type ?>) < sizeof(long long)) {
+        return _qrintf_<?= $check ?>_long_core(ctx, fill_ch, width, (unsigned long)v, 0);
+    }
+    else {
+        assert(sizeof(<?= $type ?>) == sizeof(long long));
+        return _qrintf_<?= $check ?>_long_long_core(ctx, 0, 0, (unsigned long long)v, 0);
+    }
 }
 EOT
 }
@@ -167,6 +170,7 @@ extern "C" {
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 #undef sprintf
 #define sprintf(...) _qp_sprintf(__VA_ARGS__)
@@ -306,18 +310,243 @@ static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?>_width_s(qrintf_<?= $c
 }
 ? }
 
+static inline const char *_qrintf_get_digit_table(void)
+{
+    static const char digits_table[] = {
+        "00010203040506070809"
+        "10111213141516171819"
+        "20212223242526272829"
+        "30313233343536373839"
+        "40414243444546474849"
+        "50515253545556575859"
+        "60616263646566676869"
+        "70717273747576777879"
+        "80818283848586878889"
+        "90919293949596979899"
+    };
+    return digits_table;
+}
+
+/* from http://graphics.stanford.edu/~seander/bithacks.html#IntegerLog10 */
+static inline unsigned _qrintf_ilog10u32(unsigned long v)
+{
+#define LOG2(N) ((unsigned)((sizeof(long) * 8) - __builtin_clzl((N)-1)))
+    static const unsigned long ilog10table[] = {
+        1UL,
+        10UL,
+        100UL,
+        1000UL,
+        10000UL,
+        100000UL,
+        1000000UL,
+        10000000UL,
+        100000000UL,
+        1000000000UL,
+        ULONG_MAX,
+    };
+    if (v != 0) {
+        unsigned t;
+        assert(sizeof(long) == sizeof(int));
+        t = ((LOG2(v) + 1) * 1233) / 4096;
+        return t + (v >= ilog10table[t]);
+    }
+    else {
+        return 1;
+    }
+#undef LOG2
+}
+
+static inline unsigned _qrintf_ilog10ull(unsigned long long v)
+{
+#define LOG2(N) ((unsigned)((sizeof(long long) * 8) - __builtin_clzll((N)-1)))
+    static const unsigned long long ilog10table[] = {
+        1ULL,
+        10ULL,
+        100ULL,
+        1000ULL,
+        10000ULL,
+        100000ULL,
+        1000000ULL,
+        10000000ULL,
+        100000000ULL,
+        1000000000ULL,
+        10000000000ULL,
+        100000000000ULL,
+        1000000000000ULL,
+        10000000000000ULL,
+        100000000000000ULL,
+        1000000000000000ULL,
+        10000000000000000ULL,
+        100000000000000000ULL,
+        1000000000000000000ULL,
+        10000000000000000000ULL,
+        ULLONG_MAX,
+    };
+    if (v != 0) {
+        unsigned t;
+        assert(sizeof(long long) == 8);
+        t = ((LOG2(v) + 1) * 1233) / 4096;
+        return t + (v >= ilog10table[t]);
+    }
+    else {
+        return 1;
+    }
+#undef LOG2
+}
+
+static inline unsigned _qrintf_ilog10ul(unsigned long v)
+{
+    if (sizeof(long) == 4) {
+        return _qrintf_ilog10u32(v);
+    }
+    else if (sizeof(long) == 8) {
+        assert(sizeof(long) == sizeof(long long));
+        return _qrintf_ilog10ull((unsigned long long)v);
+    }
+    else {
+        assert(0 && "size of `long` is not 32bit nor 64bit");
+    }
+}
+
+static inline void _qrintf_long_core(char *p, unsigned long val)
+{
+    const char *digits = _qrintf_get_digit_table();
+    while (val >= 100) {
+        unsigned idx = val % 100 * 2;
+        *--p = digits[idx + 1];
+        *--p = digits[idx];
+        val /= 100;
+    }
+    if (val < 10) {
+        *--p = '0' + val;
+    } else {
+        *--p = digits[val * 2 + 1];
+        *--p = digits[val * 2];
+    }
+}
+
+static inline void _qrintf_long_long_core(char *p, unsigned long long val)
+{
+    const char *digits = _qrintf_get_digit_table();
+    while (val >= 100) {
+        unsigned idx = val % 100 * 2;
+        *--p = digits[idx + 1];
+        *--p = digits[idx];
+        val /= 100;
+    }
+    if (val < 10) {
+        *--p = '0' + val;
+    } else {
+        *--p = digits[val * 2 + 1];
+        *--p = digits[val * 2];
+    }
+}
+
+static inline qrintf_nck_t _qrintf_nck_long_core(qrintf_nck_t ctx, int fill_ch, int width, unsigned long val, int sign)
+{
+    int len = _qrintf_ilog10ul(val);
+    int wlen = len;
+    if (fill_ch == ' ') {
+        ctx = _qrintf_nck_fill(ctx, fill_ch, len + sign, width);
+    }
+    if (sign) {
+        ctx.str[ctx.off++] = '-';
+        width -= 1;
+    }
+    if (fill_ch == '0') {
+        ctx = _qrintf_nck_fill(ctx, fill_ch, len, width);
+    }
+
+    _qrintf_long_core(ctx.str + ctx.off + wlen, val);
+    ctx.off += len;
+    return ctx;
+}
+
+static inline qrintf_nck_t _qrintf_nck_long_long_core(qrintf_nck_t ctx, int fill_ch, int width, unsigned long long val, int sign)
+{
+    int len = _qrintf_ilog10ull(val);
+    int wlen = len;
+    if (fill_ch == ' ') {
+        ctx = _qrintf_nck_fill(ctx, fill_ch, len + sign, width);
+    }
+    if (sign) {
+        ctx.str[ctx.off++] = '-';
+        width -= 1;
+    }
+    if (fill_ch == '0') {
+        ctx = _qrintf_nck_fill(ctx, fill_ch, len, width);
+    }
+
+    _qrintf_long_long_core(ctx.str + ctx.off + wlen, val);
+    ctx.off += len;
+    return ctx;
+}
+
+static inline qrintf_chk_t _qrintf_chk_long_core(qrintf_chk_t ctx, int fill_ch, int width, unsigned long val, int sign)
+{
+    int len = _qrintf_ilog10ul(val);
+    int wlen = len;
+    if (ctx.off + wlen + sign > ctx.size) {
+        int n = ctx.off + wlen + sign - ctx.size;
+        wlen -= n;
+        while (n-- != 0) {
+            val /= 10;
+        }
+    }
+    if (fill_ch == ' ') {
+        ctx = _qrintf_chk_fill(ctx, fill_ch, len + sign, width);
+    }
+    if (sign && ctx.off + 1 < ctx.size) {
+        ctx.str[ctx.off++] = '-';
+        width -= 1;
+    }
+    if (fill_ch == '0') {
+        ctx = _qrintf_chk_fill(ctx, fill_ch, len, width);
+    }
+
+    _qrintf_long_core(ctx.str + ctx.off + wlen, val);
+    ctx.off += len;
+    return ctx;
+}
+
+
+static inline qrintf_chk_t _qrintf_chk_long_long_core(qrintf_chk_t ctx, int fill_ch, int width, unsigned long long val, int sign)
+{
+    int len = _qrintf_ilog10ull(val);
+    int wlen = len;
+    if (ctx.off + wlen + sign > ctx.size) {
+        int n = ctx.off + wlen + sign - ctx.size;
+        wlen -= n;
+        while (n-- != 0) {
+            val /= 10;
+        }
+    }
+    if (fill_ch == ' ') {
+        ctx = _qrintf_chk_fill(ctx, fill_ch, len + sign, width);
+    }
+    if (sign && ctx.off + 1 < ctx.size) {
+        ctx.str[ctx.off++] = '-';
+        width -= 1;
+    }
+    if (fill_ch == '0') {
+        ctx = _qrintf_chk_fill(ctx, fill_ch, len, width);
+    }
+
+    _qrintf_long_long_core(ctx.str + ctx.off + wlen, val);
+    ctx.off += len;
+    return ctx;
+}
+
 ? for my $check (qw(nck chk)) {
 <?= $build_d->($check, "short", "hd", "SHRT_MIN", "SHRT_MAX") ?>
 <?= $build_d->($check, "int", "d", "INT_MIN", "INT_MAX") ?>
 <?= $build_d->($check, "long", "ld", "LONG_MIN", "LONG_MAX") ?>
 <?= $build_d->($check, "long long", "lld", "LLONG_MIN", "LLONG_MAX") ?>
-?   for my $with_width (0..1) {
-<?= $build_u->($check, "unsigned short", "hu", "USHRT_MAX", $with_width) ?>
-<?= $build_u->($check, "unsigned", "u", "UINT_MAX", $with_width) ?>
-<?= $build_u->($check, "unsigned long", "lu", "ULONG_MAX", $with_width) ?>
-<?= $build_u->($check, "unsigned long long", "llu", "ULLONG_MAX", $with_width) ?>
-<?= $build_u->($check, "size_t", "zu", "SIZE_MAX", $with_width) ?>
-?   }
+<?= $build_u->($check, "unsigned short", "hu", "USHRT_MAX") ?>
+<?= $build_u->($check, "unsigned", "u", "UINT_MAX") ?>
+<?= $build_u->($check, "unsigned long", "lu", "ULONG_MAX") ?>
+<?= $build_u->($check, "unsigned long long", "llu", "ULLONG_MAX") ?>
+<?= $build_u->($check, "size_t", "zu", "SIZE_MAX") ?>
 ?   for my $with_width (0..1) {
 <?= $build_x->($check, "unsigned short", "hx", $with_width) ?>
 <?= $build_x->($check, "unsigned", "x", $with_width) ?>

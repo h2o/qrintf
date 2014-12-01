@@ -32,6 +32,7 @@ extern "C" {
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 #undef sprintf
 #define sprintf(...) _qp_sprintf(__VA_ARGS__)
@@ -187,291 +188,506 @@ static inline qrintf_chk_t _qrintf_chk_width_s(qrintf_chk_t ctx, int fill_ch, in
     return _qrintf_chk_s_len(ctx, s, slen);
 }
 
-static inline char *_qrintf_hd_core(char *p, short v)
+static inline const char *_qrintf_get_digit_table(void)
 {
-    if (v < 0) {
-        if (v == SHRT_MIN) {
-            *--p = '1' + SHRT_MAX % 10;
-            v = SHRT_MAX / 10;
-        } else {
-            v = -v;
+    static const char digits_table[] = {
+        "00010203040506070809"
+        "10111213141516171819"
+        "20212223242526272829"
+        "30313233343536373839"
+        "40414243444546474849"
+        "50515253545556575859"
+        "60616263646566676869"
+        "70717273747576777879"
+        "80818283848586878889"
+        "90919293949596979899"
+    };
+    return digits_table;
+}
+
+/* from http://graphics.stanford.edu/~seander/bithacks.html#IntegerLog10 */
+static inline unsigned _qrintf_ilog10u32(unsigned long v)
+{
+#define LOG2(N) ((unsigned)((sizeof(long) * 8) - __builtin_clzl((N)-1)))
+    static const unsigned long ilog10table[] = {
+        1UL,
+        10UL,
+        100UL,
+        1000UL,
+        10000UL,
+        100000UL,
+        1000000UL,
+        10000000UL,
+        100000000UL,
+        1000000000UL,
+        ULONG_MAX,
+    };
+    if (v != 0) {
+        unsigned t;
+        assert(sizeof(long) == sizeof(int));
+        t = ((LOG2(v) + 1) * 1233) / 4096;
+        return t + (v >= ilog10table[t]);
+    }
+    else {
+        return 1;
+    }
+#undef LOG2
+}
+
+static inline unsigned _qrintf_ilog10ull(unsigned long long v)
+{
+#define LOG2(N) ((unsigned)((sizeof(long long) * 8) - __builtin_clzll((N)-1)))
+    static const unsigned long long ilog10table[] = {
+        1ULL,
+        10ULL,
+        100ULL,
+        1000ULL,
+        10000ULL,
+        100000ULL,
+        1000000ULL,
+        10000000ULL,
+        100000000ULL,
+        1000000000ULL,
+        10000000000ULL,
+        100000000000ULL,
+        1000000000000ULL,
+        10000000000000ULL,
+        100000000000000ULL,
+        1000000000000000ULL,
+        10000000000000000ULL,
+        100000000000000000ULL,
+        1000000000000000000ULL,
+        10000000000000000000ULL,
+        ULLONG_MAX,
+    };
+    if (v != 0) {
+        unsigned t;
+        assert(sizeof(long long) == 8);
+        t = ((LOG2(v) + 1) * 1233) / 4096;
+        return t + (v >= ilog10table[t]);
+    }
+    else {
+        return 1;
+    }
+#undef LOG2
+}
+
+static inline unsigned _qrintf_ilog10ul(unsigned long v)
+{
+    if (sizeof(long) == 4) {
+        return _qrintf_ilog10u32(v);
+    }
+    else if (sizeof(long) == 8) {
+        assert(sizeof(long) == sizeof(long long));
+        return _qrintf_ilog10ull((unsigned long long)v);
+    }
+    else {
+        assert(0 && "size of `long` is not 32bit nor 64bit");
+    }
+}
+
+static inline void _qrintf_long_core(char *p, unsigned long val)
+{
+    const char *digits = _qrintf_get_digit_table();
+    while (val >= 100) {
+        unsigned idx = val % 100 * 2;
+        *--p = digits[idx + 1];
+        *--p = digits[idx];
+        val /= 100;
+    }
+    if (val < 10) {
+        *--p = '0' + val;
+    } else {
+        *--p = digits[val * 2 + 1];
+        *--p = digits[val * 2];
+    }
+}
+
+static inline void _qrintf_long_long_core(char *p, unsigned long long val)
+{
+    const char *digits = _qrintf_get_digit_table();
+    while (val >= 100) {
+        unsigned idx = val % 100 * 2;
+        *--p = digits[idx + 1];
+        *--p = digits[idx];
+        val /= 100;
+    }
+    if (val < 10) {
+        *--p = '0' + val;
+    } else {
+        *--p = digits[val * 2 + 1];
+        *--p = digits[val * 2];
+    }
+}
+
+static inline qrintf_nck_t _qrintf_nck_long_core(qrintf_nck_t ctx, int fill_ch, int width, unsigned long val, int sign)
+{
+    int len = _qrintf_ilog10ul(val);
+    int wlen = len;
+    if (fill_ch == ' ') {
+        ctx = _qrintf_nck_fill(ctx, fill_ch, len + sign, width);
+    }
+    if (sign) {
+        ctx.str[ctx.off++] = '-';
+        width -= 1;
+    }
+    if (fill_ch == '0') {
+        ctx = _qrintf_nck_fill(ctx, fill_ch, len, width);
+    }
+
+    _qrintf_long_core(ctx.str + ctx.off + wlen, val);
+    ctx.off += len;
+    return ctx;
+}
+
+static inline qrintf_nck_t _qrintf_nck_long_long_core(qrintf_nck_t ctx, int fill_ch, int width, unsigned long long val, int sign)
+{
+    int len = _qrintf_ilog10ull(val);
+    int wlen = len;
+    if (fill_ch == ' ') {
+        ctx = _qrintf_nck_fill(ctx, fill_ch, len + sign, width);
+    }
+    if (sign) {
+        ctx.str[ctx.off++] = '-';
+        width -= 1;
+    }
+    if (fill_ch == '0') {
+        ctx = _qrintf_nck_fill(ctx, fill_ch, len, width);
+    }
+
+    _qrintf_long_long_core(ctx.str + ctx.off + wlen, val);
+    ctx.off += len;
+    return ctx;
+}
+
+static inline qrintf_chk_t _qrintf_chk_long_core(qrintf_chk_t ctx, int fill_ch, int width, unsigned long val, int sign)
+{
+    int len = _qrintf_ilog10ul(val);
+    int wlen = len;
+    if (ctx.off + wlen + sign > ctx.size) {
+        int n = ctx.off + wlen + sign - ctx.size;
+        wlen -= n;
+        while (n-- != 0) {
+            val /= 10;
         }
     }
-    do {
-        *--p = '0' + v % 10;
-    } while ((v /= 10) != 0);
-    return p;
+    if (fill_ch == ' ') {
+        ctx = _qrintf_chk_fill(ctx, fill_ch, len + sign, width);
+    }
+    if (sign && ctx.off + 1 < ctx.size) {
+        ctx.str[ctx.off++] = '-';
+        width -= 1;
+    }
+    if (fill_ch == '0') {
+        ctx = _qrintf_chk_fill(ctx, fill_ch, len, width);
+    }
+
+    _qrintf_long_core(ctx.str + ctx.off + wlen, val);
+    ctx.off += len;
+    return ctx;
+}
+
+
+static inline qrintf_chk_t _qrintf_chk_long_long_core(qrintf_chk_t ctx, int fill_ch, int width, unsigned long long val, int sign)
+{
+    int len = _qrintf_ilog10ull(val);
+    int wlen = len;
+    if (ctx.off + wlen + sign > ctx.size) {
+        int n = ctx.off + wlen + sign - ctx.size;
+        wlen -= n;
+        while (n-- != 0) {
+            val /= 10;
+        }
+    }
+    if (fill_ch == ' ') {
+        ctx = _qrintf_chk_fill(ctx, fill_ch, len + sign, width);
+    }
+    if (sign && ctx.off + 1 < ctx.size) {
+        ctx.str[ctx.off++] = '-';
+        width -= 1;
+    }
+    if (fill_ch == '0') {
+        ctx = _qrintf_chk_fill(ctx, fill_ch, len, width);
+    }
+
+    _qrintf_long_long_core(ctx.str + ctx.off + wlen, val);
+    ctx.off += len;
+    return ctx;
 }
 
 static inline qrintf_nck_t _qrintf_nck_hd(qrintf_nck_t ctx, short v)
 {
-    char buf[sizeof(short) * 3], *p;
+    unsigned short val = v;
+    int sign = v < 0;
     if (v < 0) {
-        ctx.str[ctx.off++] = '-';
+        if (v == SHRT_MIN) {
+            val = (unsigned short)(SHRT_MAX) + 1;
+        } else {
+            val = (unsigned short)(-v);
+        }
     }
-    p = _qrintf_hd_core(buf + sizeof(buf), v);
-    return _qrintf_nck_s_len(ctx, p, buf + sizeof(buf) - p);
+    if (sizeof(short) < sizeof(long long)) {
+        return _qrintf_nck_long_core(ctx, 0, 0, (unsigned long)val, sign);
+    }
+    else {
+        assert(sizeof(short) == sizeof(long long));
+        return _qrintf_nck_long_long_core(ctx, 0, 0, (unsigned long long)val, sign);
+    }
 }
 
 static inline qrintf_nck_t _qrintf_nck_width_hd(qrintf_nck_t ctx, int fill_ch, int width, short v)
 {
-    char buf[sizeof(short) * 3 + 1], *p = _qrintf_hd_core(buf + sizeof(buf), v);
-    int len;
+    unsigned short val = v;
+    int sign = v < 0;
     if (v < 0) {
-        if (fill_ch == ' ') {
-            *--p = '-';
+        if (v == SHRT_MIN) {
+            val = (unsigned short)(SHRT_MAX) + 1;
         } else {
-            ctx.str[ctx.off++] = '-';
-            --width;
+            val = (unsigned short)(-v);
         }
     }
-    len = buf + sizeof(buf) - p;
-    ctx = _qrintf_nck_fill(ctx, fill_ch, len, width);
-    return _qrintf_nck_s_len(ctx, p, len);
-}
-
-static inline char *_qrintf_d_core(char *p, int v)
-{
-    if (v < 0) {
-        if (v == INT_MIN) {
-            *--p = '1' + INT_MAX % 10;
-            v = INT_MAX / 10;
-        } else {
-            v = -v;
-        }
+    if (sizeof(short) < sizeof(long long)) {
+        return _qrintf_nck_long_core(ctx, fill_ch, width, (unsigned long)val, sign);
     }
-    do {
-        *--p = '0' + v % 10;
-    } while ((v /= 10) != 0);
-    return p;
+    else {
+        assert(sizeof(short) == sizeof(long long));
+        return _qrintf_nck_long_long_core(ctx, fill_ch, width, (unsigned long long)val, sign);
+    }
 }
 
 static inline qrintf_nck_t _qrintf_nck_d(qrintf_nck_t ctx, int v)
 {
-    char buf[sizeof(int) * 3], *p;
+    unsigned int val = v;
+    int sign = v < 0;
     if (v < 0) {
-        ctx.str[ctx.off++] = '-';
+        if (v == INT_MIN) {
+            val = (unsigned int)(INT_MAX) + 1;
+        } else {
+            val = (unsigned int)(-v);
+        }
     }
-    p = _qrintf_d_core(buf + sizeof(buf), v);
-    return _qrintf_nck_s_len(ctx, p, buf + sizeof(buf) - p);
+    if (sizeof(int) < sizeof(long long)) {
+        return _qrintf_nck_long_core(ctx, 0, 0, (unsigned long)val, sign);
+    }
+    else {
+        assert(sizeof(int) == sizeof(long long));
+        return _qrintf_nck_long_long_core(ctx, 0, 0, (unsigned long long)val, sign);
+    }
 }
 
 static inline qrintf_nck_t _qrintf_nck_width_d(qrintf_nck_t ctx, int fill_ch, int width, int v)
 {
-    char buf[sizeof(int) * 3 + 1], *p = _qrintf_d_core(buf + sizeof(buf), v);
-    int len;
+    unsigned int val = v;
+    int sign = v < 0;
     if (v < 0) {
-        if (fill_ch == ' ') {
-            *--p = '-';
+        if (v == INT_MIN) {
+            val = (unsigned int)(INT_MAX) + 1;
         } else {
-            ctx.str[ctx.off++] = '-';
-            --width;
+            val = (unsigned int)(-v);
         }
     }
-    len = buf + sizeof(buf) - p;
-    ctx = _qrintf_nck_fill(ctx, fill_ch, len, width);
-    return _qrintf_nck_s_len(ctx, p, len);
-}
-
-static inline char *_qrintf_ld_core(char *p, long v)
-{
-    if (v < 0) {
-        if (v == LONG_MIN) {
-            *--p = '1' + LONG_MAX % 10;
-            v = LONG_MAX / 10;
-        } else {
-            v = -v;
-        }
+    if (sizeof(int) < sizeof(long long)) {
+        return _qrintf_nck_long_core(ctx, fill_ch, width, (unsigned long)val, sign);
     }
-    do {
-        *--p = '0' + v % 10;
-    } while ((v /= 10) != 0);
-    return p;
+    else {
+        assert(sizeof(int) == sizeof(long long));
+        return _qrintf_nck_long_long_core(ctx, fill_ch, width, (unsigned long long)val, sign);
+    }
 }
 
 static inline qrintf_nck_t _qrintf_nck_ld(qrintf_nck_t ctx, long v)
 {
-    char buf[sizeof(long) * 3], *p;
+    unsigned long val = v;
+    int sign = v < 0;
     if (v < 0) {
-        ctx.str[ctx.off++] = '-';
+        if (v == LONG_MIN) {
+            val = (unsigned long)(LONG_MAX) + 1;
+        } else {
+            val = (unsigned long)(-v);
+        }
     }
-    p = _qrintf_ld_core(buf + sizeof(buf), v);
-    return _qrintf_nck_s_len(ctx, p, buf + sizeof(buf) - p);
+    if (sizeof(long) < sizeof(long long)) {
+        return _qrintf_nck_long_core(ctx, 0, 0, (unsigned long)val, sign);
+    }
+    else {
+        assert(sizeof(long) == sizeof(long long));
+        return _qrintf_nck_long_long_core(ctx, 0, 0, (unsigned long long)val, sign);
+    }
 }
 
 static inline qrintf_nck_t _qrintf_nck_width_ld(qrintf_nck_t ctx, int fill_ch, int width, long v)
 {
-    char buf[sizeof(long) * 3 + 1], *p = _qrintf_ld_core(buf + sizeof(buf), v);
-    int len;
+    unsigned long val = v;
+    int sign = v < 0;
     if (v < 0) {
-        if (fill_ch == ' ') {
-            *--p = '-';
+        if (v == LONG_MIN) {
+            val = (unsigned long)(LONG_MAX) + 1;
         } else {
-            ctx.str[ctx.off++] = '-';
-            --width;
+            val = (unsigned long)(-v);
         }
     }
-    len = buf + sizeof(buf) - p;
-    ctx = _qrintf_nck_fill(ctx, fill_ch, len, width);
-    return _qrintf_nck_s_len(ctx, p, len);
-}
-
-static inline char *_qrintf_lld_core(char *p, long long v)
-{
-    if (v < 0) {
-        if (v == LLONG_MIN) {
-            *--p = '1' + LLONG_MAX % 10;
-            v = LLONG_MAX / 10;
-        } else {
-            v = -v;
-        }
+    if (sizeof(long) < sizeof(long long)) {
+        return _qrintf_nck_long_core(ctx, fill_ch, width, (unsigned long)val, sign);
     }
-    do {
-        *--p = '0' + v % 10;
-    } while ((v /= 10) != 0);
-    return p;
+    else {
+        assert(sizeof(long) == sizeof(long long));
+        return _qrintf_nck_long_long_core(ctx, fill_ch, width, (unsigned long long)val, sign);
+    }
 }
 
 static inline qrintf_nck_t _qrintf_nck_lld(qrintf_nck_t ctx, long long v)
 {
-    char buf[sizeof(long long) * 3], *p;
+    unsigned long long val = v;
+    int sign = v < 0;
     if (v < 0) {
-        ctx.str[ctx.off++] = '-';
+        if (v == LLONG_MIN) {
+            val = (unsigned long long)(LLONG_MAX) + 1;
+        } else {
+            val = (unsigned long long)(-v);
+        }
     }
-    p = _qrintf_lld_core(buf + sizeof(buf), v);
-    return _qrintf_nck_s_len(ctx, p, buf + sizeof(buf) - p);
+    if (sizeof(long long) < sizeof(long long)) {
+        return _qrintf_nck_long_core(ctx, 0, 0, (unsigned long)val, sign);
+    }
+    else {
+        assert(sizeof(long long) == sizeof(long long));
+        return _qrintf_nck_long_long_core(ctx, 0, 0, (unsigned long long)val, sign);
+    }
 }
 
 static inline qrintf_nck_t _qrintf_nck_width_lld(qrintf_nck_t ctx, int fill_ch, int width, long long v)
 {
-    char buf[sizeof(long long) * 3 + 1], *p = _qrintf_lld_core(buf + sizeof(buf), v);
-    int len;
+    unsigned long long val = v;
+    int sign = v < 0;
     if (v < 0) {
-        if (fill_ch == ' ') {
-            *--p = '-';
+        if (v == LLONG_MIN) {
+            val = (unsigned long long)(LLONG_MAX) + 1;
         } else {
-            ctx.str[ctx.off++] = '-';
-            --width;
+            val = (unsigned long long)(-v);
         }
     }
-    len = buf + sizeof(buf) - p;
-    ctx = _qrintf_nck_fill(ctx, fill_ch, len, width);
-    return _qrintf_nck_s_len(ctx, p, len);
+    if (sizeof(long long) < sizeof(long long)) {
+        return _qrintf_nck_long_core(ctx, fill_ch, width, (unsigned long)val, sign);
+    }
+    else {
+        assert(sizeof(long long) == sizeof(long long));
+        return _qrintf_nck_long_long_core(ctx, fill_ch, width, (unsigned long long)val, sign);
+    }
 }
+
 
 static inline qrintf_nck_t _qrintf_nck_hu(qrintf_nck_t ctx, unsigned short v)
 {
-    char tmp[sizeof(unsigned short) * 3], *p = tmp + sizeof(tmp);
-    int len;
-    do {
-        *--p = '0' + v % 10;
-    } while ((v /= 10) != 0);
-    len = tmp + sizeof(tmp) - p;
-    return _qrintf_nck_s_len(ctx, p, len);
-}
-
-static inline qrintf_nck_t _qrintf_nck_u(qrintf_nck_t ctx, unsigned v)
-{
-    char tmp[sizeof(unsigned) * 3], *p = tmp + sizeof(tmp);
-    int len;
-    do {
-        *--p = '0' + v % 10;
-    } while ((v /= 10) != 0);
-    len = tmp + sizeof(tmp) - p;
-    return _qrintf_nck_s_len(ctx, p, len);
-}
-
-static inline qrintf_nck_t _qrintf_nck_lu(qrintf_nck_t ctx, unsigned long v)
-{
-    char tmp[sizeof(unsigned long) * 3], *p = tmp + sizeof(tmp);
-    int len;
-    do {
-        *--p = '0' + v % 10;
-    } while ((v /= 10) != 0);
-    len = tmp + sizeof(tmp) - p;
-    return _qrintf_nck_s_len(ctx, p, len);
-}
-
-static inline qrintf_nck_t _qrintf_nck_llu(qrintf_nck_t ctx, unsigned long long v)
-{
-    char tmp[sizeof(unsigned long long) * 3], *p = tmp + sizeof(tmp);
-    int len;
-    do {
-        *--p = '0' + v % 10;
-    } while ((v /= 10) != 0);
-    len = tmp + sizeof(tmp) - p;
-    return _qrintf_nck_s_len(ctx, p, len);
-}
-
-static inline qrintf_nck_t _qrintf_nck_zu(qrintf_nck_t ctx, size_t v)
-{
-    char tmp[sizeof(size_t) * 3], *p = tmp + sizeof(tmp);
-    int len;
-    do {
-        *--p = '0' + v % 10;
-    } while ((v /= 10) != 0);
-    len = tmp + sizeof(tmp) - p;
-    return _qrintf_nck_s_len(ctx, p, len);
+    if (sizeof(unsigned short) < sizeof(long long)) {
+        return _qrintf_nck_long_core(ctx, 0, 0, (unsigned long)v, 0);
+    }
+    else {
+        assert(sizeof(unsigned short) == sizeof(long long));
+        return _qrintf_nck_long_long_core(ctx, 0, 0, (unsigned long long)v, 0);
+    }
 }
 
 static inline qrintf_nck_t _qrintf_nck_width_hu(qrintf_nck_t ctx, int fill_ch, int width, unsigned short v)
 {
-    char tmp[sizeof(unsigned short) * 3], *p = tmp + sizeof(tmp);
-    int len;
-    do {
-        *--p = '0' + v % 10;
-    } while ((v /= 10) != 0);
-    len = tmp + sizeof(tmp) - p;
-    ctx = _qrintf_nck_fill(ctx, fill_ch, len, width);
-    return _qrintf_nck_s_len(ctx, p, len);
+    if (sizeof(unsigned short) < sizeof(long long)) {
+        return _qrintf_nck_long_core(ctx, fill_ch, width, (unsigned long)v, 0);
+    }
+    else {
+        assert(sizeof(unsigned short) == sizeof(long long));
+        return _qrintf_nck_long_long_core(ctx, 0, 0, (unsigned long long)v, 0);
+    }
+}
+
+
+static inline qrintf_nck_t _qrintf_nck_u(qrintf_nck_t ctx, unsigned v)
+{
+    if (sizeof(unsigned) < sizeof(long long)) {
+        return _qrintf_nck_long_core(ctx, 0, 0, (unsigned long)v, 0);
+    }
+    else {
+        assert(sizeof(unsigned) == sizeof(long long));
+        return _qrintf_nck_long_long_core(ctx, 0, 0, (unsigned long long)v, 0);
+    }
 }
 
 static inline qrintf_nck_t _qrintf_nck_width_u(qrintf_nck_t ctx, int fill_ch, int width, unsigned v)
 {
-    char tmp[sizeof(unsigned) * 3], *p = tmp + sizeof(tmp);
-    int len;
-    do {
-        *--p = '0' + v % 10;
-    } while ((v /= 10) != 0);
-    len = tmp + sizeof(tmp) - p;
-    ctx = _qrintf_nck_fill(ctx, fill_ch, len, width);
-    return _qrintf_nck_s_len(ctx, p, len);
+    if (sizeof(unsigned) < sizeof(long long)) {
+        return _qrintf_nck_long_core(ctx, fill_ch, width, (unsigned long)v, 0);
+    }
+    else {
+        assert(sizeof(unsigned) == sizeof(long long));
+        return _qrintf_nck_long_long_core(ctx, 0, 0, (unsigned long long)v, 0);
+    }
+}
+
+
+static inline qrintf_nck_t _qrintf_nck_lu(qrintf_nck_t ctx, unsigned long v)
+{
+    if (sizeof(unsigned long) < sizeof(long long)) {
+        return _qrintf_nck_long_core(ctx, 0, 0, (unsigned long)v, 0);
+    }
+    else {
+        assert(sizeof(unsigned long) == sizeof(long long));
+        return _qrintf_nck_long_long_core(ctx, 0, 0, (unsigned long long)v, 0);
+    }
 }
 
 static inline qrintf_nck_t _qrintf_nck_width_lu(qrintf_nck_t ctx, int fill_ch, int width, unsigned long v)
 {
-    char tmp[sizeof(unsigned long) * 3], *p = tmp + sizeof(tmp);
-    int len;
-    do {
-        *--p = '0' + v % 10;
-    } while ((v /= 10) != 0);
-    len = tmp + sizeof(tmp) - p;
-    ctx = _qrintf_nck_fill(ctx, fill_ch, len, width);
-    return _qrintf_nck_s_len(ctx, p, len);
+    if (sizeof(unsigned long) < sizeof(long long)) {
+        return _qrintf_nck_long_core(ctx, fill_ch, width, (unsigned long)v, 0);
+    }
+    else {
+        assert(sizeof(unsigned long) == sizeof(long long));
+        return _qrintf_nck_long_long_core(ctx, 0, 0, (unsigned long long)v, 0);
+    }
+}
+
+
+static inline qrintf_nck_t _qrintf_nck_llu(qrintf_nck_t ctx, unsigned long long v)
+{
+    if (sizeof(unsigned long long) < sizeof(long long)) {
+        return _qrintf_nck_long_core(ctx, 0, 0, (unsigned long)v, 0);
+    }
+    else {
+        assert(sizeof(unsigned long long) == sizeof(long long));
+        return _qrintf_nck_long_long_core(ctx, 0, 0, (unsigned long long)v, 0);
+    }
 }
 
 static inline qrintf_nck_t _qrintf_nck_width_llu(qrintf_nck_t ctx, int fill_ch, int width, unsigned long long v)
 {
-    char tmp[sizeof(unsigned long long) * 3], *p = tmp + sizeof(tmp);
-    int len;
-    do {
-        *--p = '0' + v % 10;
-    } while ((v /= 10) != 0);
-    len = tmp + sizeof(tmp) - p;
-    ctx = _qrintf_nck_fill(ctx, fill_ch, len, width);
-    return _qrintf_nck_s_len(ctx, p, len);
+    if (sizeof(unsigned long long) < sizeof(long long)) {
+        return _qrintf_nck_long_core(ctx, fill_ch, width, (unsigned long)v, 0);
+    }
+    else {
+        assert(sizeof(unsigned long long) == sizeof(long long));
+        return _qrintf_nck_long_long_core(ctx, 0, 0, (unsigned long long)v, 0);
+    }
+}
+
+
+static inline qrintf_nck_t _qrintf_nck_zu(qrintf_nck_t ctx, size_t v)
+{
+    if (sizeof(size_t) < sizeof(long long)) {
+        return _qrintf_nck_long_core(ctx, 0, 0, (unsigned long)v, 0);
+    }
+    else {
+        assert(sizeof(size_t) == sizeof(long long));
+        return _qrintf_nck_long_long_core(ctx, 0, 0, (unsigned long long)v, 0);
+    }
 }
 
 static inline qrintf_nck_t _qrintf_nck_width_zu(qrintf_nck_t ctx, int fill_ch, int width, size_t v)
 {
-    char tmp[sizeof(size_t) * 3], *p = tmp + sizeof(tmp);
-    int len;
-    do {
-        *--p = '0' + v % 10;
-    } while ((v /= 10) != 0);
-    len = tmp + sizeof(tmp) - p;
-    ctx = _qrintf_nck_fill(ctx, fill_ch, len, width);
-    return _qrintf_nck_s_len(ctx, p, len);
+    if (sizeof(size_t) < sizeof(long long)) {
+        return _qrintf_nck_long_core(ctx, fill_ch, width, (unsigned long)v, 0);
+    }
+    else {
+        assert(sizeof(size_t) == sizeof(long long));
+        return _qrintf_nck_long_long_core(ctx, 0, 0, (unsigned long long)v, 0);
+    }
 }
 
 static inline qrintf_nck_t _qrintf_nck_hx(qrintf_nck_t ctx, unsigned short v, const char *chars)
@@ -709,231 +925,279 @@ static inline qrintf_nck_t _qrintf_nck_width_zx(qrintf_nck_t ctx, int fill_ch, i
     return ctx;
 }
 
-
 static inline qrintf_chk_t _qrintf_chk_hd(qrintf_chk_t ctx, short v)
 {
-    char buf[sizeof(short) * 3], *p;
+    unsigned short val = v;
+    int sign = v < 0;
     if (v < 0) {
-        do { int ch = '-'; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
+        if (v == SHRT_MIN) {
+            val = (unsigned short)(SHRT_MAX) + 1;
+        } else {
+            val = (unsigned short)(-v);
+        }
     }
-    p = _qrintf_hd_core(buf + sizeof(buf), v);
-    return _qrintf_chk_s_len(ctx, p, buf + sizeof(buf) - p);
+    if (sizeof(short) < sizeof(long long)) {
+        return _qrintf_chk_long_core(ctx, 0, 0, (unsigned long)val, sign);
+    }
+    else {
+        assert(sizeof(short) == sizeof(long long));
+        return _qrintf_chk_long_long_core(ctx, 0, 0, (unsigned long long)val, sign);
+    }
 }
 
 static inline qrintf_chk_t _qrintf_chk_width_hd(qrintf_chk_t ctx, int fill_ch, int width, short v)
 {
-    char buf[sizeof(short) * 3 + 1], *p = _qrintf_hd_core(buf + sizeof(buf), v);
-    int len;
+    unsigned short val = v;
+    int sign = v < 0;
     if (v < 0) {
-        if (fill_ch == ' ') {
-            *--p = '-';
+        if (v == SHRT_MIN) {
+            val = (unsigned short)(SHRT_MAX) + 1;
         } else {
-            do { int ch = '-'; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
-            --width;
+            val = (unsigned short)(-v);
         }
     }
-    len = buf + sizeof(buf) - p;
-    ctx = _qrintf_chk_fill(ctx, fill_ch, len, width);
-    return _qrintf_chk_s_len(ctx, p, len);
+    if (sizeof(short) < sizeof(long long)) {
+        return _qrintf_chk_long_core(ctx, fill_ch, width, (unsigned long)val, sign);
+    }
+    else {
+        assert(sizeof(short) == sizeof(long long));
+        return _qrintf_chk_long_long_core(ctx, fill_ch, width, (unsigned long long)val, sign);
+    }
 }
-
 
 static inline qrintf_chk_t _qrintf_chk_d(qrintf_chk_t ctx, int v)
 {
-    char buf[sizeof(int) * 3], *p;
+    unsigned int val = v;
+    int sign = v < 0;
     if (v < 0) {
-        do { int ch = '-'; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
+        if (v == INT_MIN) {
+            val = (unsigned int)(INT_MAX) + 1;
+        } else {
+            val = (unsigned int)(-v);
+        }
     }
-    p = _qrintf_d_core(buf + sizeof(buf), v);
-    return _qrintf_chk_s_len(ctx, p, buf + sizeof(buf) - p);
+    if (sizeof(int) < sizeof(long long)) {
+        return _qrintf_chk_long_core(ctx, 0, 0, (unsigned long)val, sign);
+    }
+    else {
+        assert(sizeof(int) == sizeof(long long));
+        return _qrintf_chk_long_long_core(ctx, 0, 0, (unsigned long long)val, sign);
+    }
 }
 
 static inline qrintf_chk_t _qrintf_chk_width_d(qrintf_chk_t ctx, int fill_ch, int width, int v)
 {
-    char buf[sizeof(int) * 3 + 1], *p = _qrintf_d_core(buf + sizeof(buf), v);
-    int len;
+    unsigned int val = v;
+    int sign = v < 0;
     if (v < 0) {
-        if (fill_ch == ' ') {
-            *--p = '-';
+        if (v == INT_MIN) {
+            val = (unsigned int)(INT_MAX) + 1;
         } else {
-            do { int ch = '-'; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
-            --width;
+            val = (unsigned int)(-v);
         }
     }
-    len = buf + sizeof(buf) - p;
-    ctx = _qrintf_chk_fill(ctx, fill_ch, len, width);
-    return _qrintf_chk_s_len(ctx, p, len);
+    if (sizeof(int) < sizeof(long long)) {
+        return _qrintf_chk_long_core(ctx, fill_ch, width, (unsigned long)val, sign);
+    }
+    else {
+        assert(sizeof(int) == sizeof(long long));
+        return _qrintf_chk_long_long_core(ctx, fill_ch, width, (unsigned long long)val, sign);
+    }
 }
-
 
 static inline qrintf_chk_t _qrintf_chk_ld(qrintf_chk_t ctx, long v)
 {
-    char buf[sizeof(long) * 3], *p;
+    unsigned long val = v;
+    int sign = v < 0;
     if (v < 0) {
-        do { int ch = '-'; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
+        if (v == LONG_MIN) {
+            val = (unsigned long)(LONG_MAX) + 1;
+        } else {
+            val = (unsigned long)(-v);
+        }
     }
-    p = _qrintf_ld_core(buf + sizeof(buf), v);
-    return _qrintf_chk_s_len(ctx, p, buf + sizeof(buf) - p);
+    if (sizeof(long) < sizeof(long long)) {
+        return _qrintf_chk_long_core(ctx, 0, 0, (unsigned long)val, sign);
+    }
+    else {
+        assert(sizeof(long) == sizeof(long long));
+        return _qrintf_chk_long_long_core(ctx, 0, 0, (unsigned long long)val, sign);
+    }
 }
 
 static inline qrintf_chk_t _qrintf_chk_width_ld(qrintf_chk_t ctx, int fill_ch, int width, long v)
 {
-    char buf[sizeof(long) * 3 + 1], *p = _qrintf_ld_core(buf + sizeof(buf), v);
-    int len;
+    unsigned long val = v;
+    int sign = v < 0;
     if (v < 0) {
-        if (fill_ch == ' ') {
-            *--p = '-';
+        if (v == LONG_MIN) {
+            val = (unsigned long)(LONG_MAX) + 1;
         } else {
-            do { int ch = '-'; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
-            --width;
+            val = (unsigned long)(-v);
         }
     }
-    len = buf + sizeof(buf) - p;
-    ctx = _qrintf_chk_fill(ctx, fill_ch, len, width);
-    return _qrintf_chk_s_len(ctx, p, len);
+    if (sizeof(long) < sizeof(long long)) {
+        return _qrintf_chk_long_core(ctx, fill_ch, width, (unsigned long)val, sign);
+    }
+    else {
+        assert(sizeof(long) == sizeof(long long));
+        return _qrintf_chk_long_long_core(ctx, fill_ch, width, (unsigned long long)val, sign);
+    }
 }
-
 
 static inline qrintf_chk_t _qrintf_chk_lld(qrintf_chk_t ctx, long long v)
 {
-    char buf[sizeof(long long) * 3], *p;
+    unsigned long long val = v;
+    int sign = v < 0;
     if (v < 0) {
-        do { int ch = '-'; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
+        if (v == LLONG_MIN) {
+            val = (unsigned long long)(LLONG_MAX) + 1;
+        } else {
+            val = (unsigned long long)(-v);
+        }
     }
-    p = _qrintf_lld_core(buf + sizeof(buf), v);
-    return _qrintf_chk_s_len(ctx, p, buf + sizeof(buf) - p);
+    if (sizeof(long long) < sizeof(long long)) {
+        return _qrintf_chk_long_core(ctx, 0, 0, (unsigned long)val, sign);
+    }
+    else {
+        assert(sizeof(long long) == sizeof(long long));
+        return _qrintf_chk_long_long_core(ctx, 0, 0, (unsigned long long)val, sign);
+    }
 }
 
 static inline qrintf_chk_t _qrintf_chk_width_lld(qrintf_chk_t ctx, int fill_ch, int width, long long v)
 {
-    char buf[sizeof(long long) * 3 + 1], *p = _qrintf_lld_core(buf + sizeof(buf), v);
-    int len;
+    unsigned long long val = v;
+    int sign = v < 0;
     if (v < 0) {
-        if (fill_ch == ' ') {
-            *--p = '-';
+        if (v == LLONG_MIN) {
+            val = (unsigned long long)(LLONG_MAX) + 1;
         } else {
-            do { int ch = '-'; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
-            --width;
+            val = (unsigned long long)(-v);
         }
     }
-    len = buf + sizeof(buf) - p;
-    ctx = _qrintf_chk_fill(ctx, fill_ch, len, width);
-    return _qrintf_chk_s_len(ctx, p, len);
+    if (sizeof(long long) < sizeof(long long)) {
+        return _qrintf_chk_long_core(ctx, fill_ch, width, (unsigned long)val, sign);
+    }
+    else {
+        assert(sizeof(long long) == sizeof(long long));
+        return _qrintf_chk_long_long_core(ctx, fill_ch, width, (unsigned long long)val, sign);
+    }
 }
+
 
 static inline qrintf_chk_t _qrintf_chk_hu(qrintf_chk_t ctx, unsigned short v)
 {
-    char tmp[sizeof(unsigned short) * 3], *p = tmp + sizeof(tmp);
-    int len;
-    do {
-        *--p = '0' + v % 10;
-    } while ((v /= 10) != 0);
-    len = tmp + sizeof(tmp) - p;
-    return _qrintf_chk_s_len(ctx, p, len);
-}
-
-static inline qrintf_chk_t _qrintf_chk_u(qrintf_chk_t ctx, unsigned v)
-{
-    char tmp[sizeof(unsigned) * 3], *p = tmp + sizeof(tmp);
-    int len;
-    do {
-        *--p = '0' + v % 10;
-    } while ((v /= 10) != 0);
-    len = tmp + sizeof(tmp) - p;
-    return _qrintf_chk_s_len(ctx, p, len);
-}
-
-static inline qrintf_chk_t _qrintf_chk_lu(qrintf_chk_t ctx, unsigned long v)
-{
-    char tmp[sizeof(unsigned long) * 3], *p = tmp + sizeof(tmp);
-    int len;
-    do {
-        *--p = '0' + v % 10;
-    } while ((v /= 10) != 0);
-    len = tmp + sizeof(tmp) - p;
-    return _qrintf_chk_s_len(ctx, p, len);
-}
-
-static inline qrintf_chk_t _qrintf_chk_llu(qrintf_chk_t ctx, unsigned long long v)
-{
-    char tmp[sizeof(unsigned long long) * 3], *p = tmp + sizeof(tmp);
-    int len;
-    do {
-        *--p = '0' + v % 10;
-    } while ((v /= 10) != 0);
-    len = tmp + sizeof(tmp) - p;
-    return _qrintf_chk_s_len(ctx, p, len);
-}
-
-static inline qrintf_chk_t _qrintf_chk_zu(qrintf_chk_t ctx, size_t v)
-{
-    char tmp[sizeof(size_t) * 3], *p = tmp + sizeof(tmp);
-    int len;
-    do {
-        *--p = '0' + v % 10;
-    } while ((v /= 10) != 0);
-    len = tmp + sizeof(tmp) - p;
-    return _qrintf_chk_s_len(ctx, p, len);
+    if (sizeof(unsigned short) < sizeof(long long)) {
+        return _qrintf_chk_long_core(ctx, 0, 0, (unsigned long)v, 0);
+    }
+    else {
+        assert(sizeof(unsigned short) == sizeof(long long));
+        return _qrintf_chk_long_long_core(ctx, 0, 0, (unsigned long long)v, 0);
+    }
 }
 
 static inline qrintf_chk_t _qrintf_chk_width_hu(qrintf_chk_t ctx, int fill_ch, int width, unsigned short v)
 {
-    char tmp[sizeof(unsigned short) * 3], *p = tmp + sizeof(tmp);
-    int len;
-    do {
-        *--p = '0' + v % 10;
-    } while ((v /= 10) != 0);
-    len = tmp + sizeof(tmp) - p;
-    ctx = _qrintf_chk_fill(ctx, fill_ch, len, width);
-    return _qrintf_chk_s_len(ctx, p, len);
+    if (sizeof(unsigned short) < sizeof(long long)) {
+        return _qrintf_chk_long_core(ctx, fill_ch, width, (unsigned long)v, 0);
+    }
+    else {
+        assert(sizeof(unsigned short) == sizeof(long long));
+        return _qrintf_chk_long_long_core(ctx, 0, 0, (unsigned long long)v, 0);
+    }
+}
+
+
+static inline qrintf_chk_t _qrintf_chk_u(qrintf_chk_t ctx, unsigned v)
+{
+    if (sizeof(unsigned) < sizeof(long long)) {
+        return _qrintf_chk_long_core(ctx, 0, 0, (unsigned long)v, 0);
+    }
+    else {
+        assert(sizeof(unsigned) == sizeof(long long));
+        return _qrintf_chk_long_long_core(ctx, 0, 0, (unsigned long long)v, 0);
+    }
 }
 
 static inline qrintf_chk_t _qrintf_chk_width_u(qrintf_chk_t ctx, int fill_ch, int width, unsigned v)
 {
-    char tmp[sizeof(unsigned) * 3], *p = tmp + sizeof(tmp);
-    int len;
-    do {
-        *--p = '0' + v % 10;
-    } while ((v /= 10) != 0);
-    len = tmp + sizeof(tmp) - p;
-    ctx = _qrintf_chk_fill(ctx, fill_ch, len, width);
-    return _qrintf_chk_s_len(ctx, p, len);
+    if (sizeof(unsigned) < sizeof(long long)) {
+        return _qrintf_chk_long_core(ctx, fill_ch, width, (unsigned long)v, 0);
+    }
+    else {
+        assert(sizeof(unsigned) == sizeof(long long));
+        return _qrintf_chk_long_long_core(ctx, 0, 0, (unsigned long long)v, 0);
+    }
+}
+
+
+static inline qrintf_chk_t _qrintf_chk_lu(qrintf_chk_t ctx, unsigned long v)
+{
+    if (sizeof(unsigned long) < sizeof(long long)) {
+        return _qrintf_chk_long_core(ctx, 0, 0, (unsigned long)v, 0);
+    }
+    else {
+        assert(sizeof(unsigned long) == sizeof(long long));
+        return _qrintf_chk_long_long_core(ctx, 0, 0, (unsigned long long)v, 0);
+    }
 }
 
 static inline qrintf_chk_t _qrintf_chk_width_lu(qrintf_chk_t ctx, int fill_ch, int width, unsigned long v)
 {
-    char tmp[sizeof(unsigned long) * 3], *p = tmp + sizeof(tmp);
-    int len;
-    do {
-        *--p = '0' + v % 10;
-    } while ((v /= 10) != 0);
-    len = tmp + sizeof(tmp) - p;
-    ctx = _qrintf_chk_fill(ctx, fill_ch, len, width);
-    return _qrintf_chk_s_len(ctx, p, len);
+    if (sizeof(unsigned long) < sizeof(long long)) {
+        return _qrintf_chk_long_core(ctx, fill_ch, width, (unsigned long)v, 0);
+    }
+    else {
+        assert(sizeof(unsigned long) == sizeof(long long));
+        return _qrintf_chk_long_long_core(ctx, 0, 0, (unsigned long long)v, 0);
+    }
+}
+
+
+static inline qrintf_chk_t _qrintf_chk_llu(qrintf_chk_t ctx, unsigned long long v)
+{
+    if (sizeof(unsigned long long) < sizeof(long long)) {
+        return _qrintf_chk_long_core(ctx, 0, 0, (unsigned long)v, 0);
+    }
+    else {
+        assert(sizeof(unsigned long long) == sizeof(long long));
+        return _qrintf_chk_long_long_core(ctx, 0, 0, (unsigned long long)v, 0);
+    }
 }
 
 static inline qrintf_chk_t _qrintf_chk_width_llu(qrintf_chk_t ctx, int fill_ch, int width, unsigned long long v)
 {
-    char tmp[sizeof(unsigned long long) * 3], *p = tmp + sizeof(tmp);
-    int len;
-    do {
-        *--p = '0' + v % 10;
-    } while ((v /= 10) != 0);
-    len = tmp + sizeof(tmp) - p;
-    ctx = _qrintf_chk_fill(ctx, fill_ch, len, width);
-    return _qrintf_chk_s_len(ctx, p, len);
+    if (sizeof(unsigned long long) < sizeof(long long)) {
+        return _qrintf_chk_long_core(ctx, fill_ch, width, (unsigned long)v, 0);
+    }
+    else {
+        assert(sizeof(unsigned long long) == sizeof(long long));
+        return _qrintf_chk_long_long_core(ctx, 0, 0, (unsigned long long)v, 0);
+    }
+}
+
+
+static inline qrintf_chk_t _qrintf_chk_zu(qrintf_chk_t ctx, size_t v)
+{
+    if (sizeof(size_t) < sizeof(long long)) {
+        return _qrintf_chk_long_core(ctx, 0, 0, (unsigned long)v, 0);
+    }
+    else {
+        assert(sizeof(size_t) == sizeof(long long));
+        return _qrintf_chk_long_long_core(ctx, 0, 0, (unsigned long long)v, 0);
+    }
 }
 
 static inline qrintf_chk_t _qrintf_chk_width_zu(qrintf_chk_t ctx, int fill_ch, int width, size_t v)
 {
-    char tmp[sizeof(size_t) * 3], *p = tmp + sizeof(tmp);
-    int len;
-    do {
-        *--p = '0' + v % 10;
-    } while ((v /= 10) != 0);
-    len = tmp + sizeof(tmp) - p;
-    ctx = _qrintf_chk_fill(ctx, fill_ch, len, width);
-    return _qrintf_chk_s_len(ctx, p, len);
+    if (sizeof(size_t) < sizeof(long long)) {
+        return _qrintf_chk_long_core(ctx, fill_ch, width, (unsigned long)v, 0);
+    }
+    else {
+        assert(sizeof(size_t) == sizeof(long long));
+        return _qrintf_chk_long_long_core(ctx, 0, 0, (unsigned long long)v, 0);
+    }
 }
 
 static inline qrintf_chk_t _qrintf_chk_hx(qrintf_chk_t ctx, unsigned short v, const char *chars)
