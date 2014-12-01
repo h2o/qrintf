@@ -417,15 +417,8 @@ static inline qrintf_chk_t _qrintf_chk_long_long_core(qrintf_chk_t ctx, int fill
 
 static inline qrintf_nck_t _qrintf_nck_hd(qrintf_nck_t ctx, short v)
 {
-    unsigned short val = v;
+    unsigned short val = v >= 0 ? v : -(unsigned short)v;
     int sign = v < 0;
-    if (v < 0) {
-        if (v == SHRT_MIN) {
-            val = (unsigned short)(SHRT_MAX) + 1;
-        } else {
-            val = (unsigned short)(-v);
-        }
-    }
     if (sizeof(short) < sizeof(long long)) {
         return _qrintf_nck_long_core(ctx, 0, 0, (unsigned long)val, sign);
     }
@@ -437,15 +430,8 @@ static inline qrintf_nck_t _qrintf_nck_hd(qrintf_nck_t ctx, short v)
 
 static inline qrintf_nck_t _qrintf_nck_width_hd(qrintf_nck_t ctx, int fill_ch, int width, short v)
 {
-    unsigned short val = v;
+    unsigned short val = v >= 0 ? v : -(unsigned short)v;
     int sign = v < 0;
-    if (v < 0) {
-        if (v == SHRT_MIN) {
-            val = (unsigned short)(SHRT_MAX) + 1;
-        } else {
-            val = (unsigned short)(-v);
-        }
-    }
     if (sizeof(short) < sizeof(long long)) {
         return _qrintf_nck_long_core(ctx, fill_ch, width, (unsigned long)val, sign);
     }
@@ -457,15 +443,8 @@ static inline qrintf_nck_t _qrintf_nck_width_hd(qrintf_nck_t ctx, int fill_ch, i
 
 static inline qrintf_nck_t _qrintf_nck_d(qrintf_nck_t ctx, int v)
 {
-    unsigned int val = v;
+    unsigned int val = v >= 0 ? v : -(unsigned int)v;
     int sign = v < 0;
-    if (v < 0) {
-        if (v == INT_MIN) {
-            val = (unsigned int)(INT_MAX) + 1;
-        } else {
-            val = (unsigned int)(-v);
-        }
-    }
     if (sizeof(int) < sizeof(long long)) {
         return _qrintf_nck_long_core(ctx, 0, 0, (unsigned long)val, sign);
     }
@@ -477,15 +456,8 @@ static inline qrintf_nck_t _qrintf_nck_d(qrintf_nck_t ctx, int v)
 
 static inline qrintf_nck_t _qrintf_nck_width_d(qrintf_nck_t ctx, int fill_ch, int width, int v)
 {
-    unsigned int val = v;
+    unsigned int val = v >= 0 ? v : -(unsigned int)v;
     int sign = v < 0;
-    if (v < 0) {
-        if (v == INT_MIN) {
-            val = (unsigned int)(INT_MAX) + 1;
-        } else {
-            val = (unsigned int)(-v);
-        }
-    }
     if (sizeof(int) < sizeof(long long)) {
         return _qrintf_nck_long_core(ctx, fill_ch, width, (unsigned long)val, sign);
     }
@@ -497,15 +469,8 @@ static inline qrintf_nck_t _qrintf_nck_width_d(qrintf_nck_t ctx, int fill_ch, in
 
 static inline qrintf_nck_t _qrintf_nck_ld(qrintf_nck_t ctx, long v)
 {
-    unsigned long val = v;
+    unsigned long val = v >= 0 ? v : -(unsigned long)v;
     int sign = v < 0;
-    if (v < 0) {
-        if (v == LONG_MIN) {
-            val = (unsigned long)(LONG_MAX) + 1;
-        } else {
-            val = (unsigned long)(-v);
-        }
-    }
     if (sizeof(long) < sizeof(long long)) {
         return _qrintf_nck_long_core(ctx, 0, 0, (unsigned long)val, sign);
     }
@@ -517,15 +482,8 @@ static inline qrintf_nck_t _qrintf_nck_ld(qrintf_nck_t ctx, long v)
 
 static inline qrintf_nck_t _qrintf_nck_width_ld(qrintf_nck_t ctx, int fill_ch, int width, long v)
 {
-    unsigned long val = v;
+    unsigned long val = v >= 0 ? v : -(unsigned long)v;
     int sign = v < 0;
-    if (v < 0) {
-        if (v == LONG_MIN) {
-            val = (unsigned long)(LONG_MAX) + 1;
-        } else {
-            val = (unsigned long)(-v);
-        }
-    }
     if (sizeof(long) < sizeof(long long)) {
         return _qrintf_nck_long_core(ctx, fill_ch, width, (unsigned long)val, sign);
     }
@@ -537,15 +495,8 @@ static inline qrintf_nck_t _qrintf_nck_width_ld(qrintf_nck_t ctx, int fill_ch, i
 
 static inline qrintf_nck_t _qrintf_nck_lld(qrintf_nck_t ctx, long long v)
 {
-    unsigned long long val = v;
+    unsigned long long val = v >= 0 ? v : -(unsigned long long)v;
     int sign = v < 0;
-    if (v < 0) {
-        if (v == LLONG_MIN) {
-            val = (unsigned long long)(LLONG_MAX) + 1;
-        } else {
-            val = (unsigned long long)(-v);
-        }
-    }
     if (sizeof(long long) < sizeof(long long)) {
         return _qrintf_nck_long_core(ctx, 0, 0, (unsigned long)val, sign);
     }
@@ -557,15 +508,8 @@ static inline qrintf_nck_t _qrintf_nck_lld(qrintf_nck_t ctx, long long v)
 
 static inline qrintf_nck_t _qrintf_nck_width_lld(qrintf_nck_t ctx, int fill_ch, int width, long long v)
 {
-    unsigned long long val = v;
+    unsigned long long val = v >= 0 ? v : -(unsigned long long)v;
     int sign = v < 0;
-    if (v < 0) {
-        if (v == LLONG_MIN) {
-            val = (unsigned long long)(LLONG_MAX) + 1;
-        } else {
-            val = (unsigned long long)(-v);
-        }
-    }
     if (sizeof(long long) < sizeof(long long)) {
         return _qrintf_nck_long_core(ctx, fill_ch, width, (unsigned long)val, sign);
     }
@@ -927,15 +871,8 @@ static inline qrintf_nck_t _qrintf_nck_width_zx(qrintf_nck_t ctx, int fill_ch, i
 
 static inline qrintf_chk_t _qrintf_chk_hd(qrintf_chk_t ctx, short v)
 {
-    unsigned short val = v;
+    unsigned short val = v >= 0 ? v : -(unsigned short)v;
     int sign = v < 0;
-    if (v < 0) {
-        if (v == SHRT_MIN) {
-            val = (unsigned short)(SHRT_MAX) + 1;
-        } else {
-            val = (unsigned short)(-v);
-        }
-    }
     if (sizeof(short) < sizeof(long long)) {
         return _qrintf_chk_long_core(ctx, 0, 0, (unsigned long)val, sign);
     }
@@ -947,15 +884,8 @@ static inline qrintf_chk_t _qrintf_chk_hd(qrintf_chk_t ctx, short v)
 
 static inline qrintf_chk_t _qrintf_chk_width_hd(qrintf_chk_t ctx, int fill_ch, int width, short v)
 {
-    unsigned short val = v;
+    unsigned short val = v >= 0 ? v : -(unsigned short)v;
     int sign = v < 0;
-    if (v < 0) {
-        if (v == SHRT_MIN) {
-            val = (unsigned short)(SHRT_MAX) + 1;
-        } else {
-            val = (unsigned short)(-v);
-        }
-    }
     if (sizeof(short) < sizeof(long long)) {
         return _qrintf_chk_long_core(ctx, fill_ch, width, (unsigned long)val, sign);
     }
@@ -967,15 +897,8 @@ static inline qrintf_chk_t _qrintf_chk_width_hd(qrintf_chk_t ctx, int fill_ch, i
 
 static inline qrintf_chk_t _qrintf_chk_d(qrintf_chk_t ctx, int v)
 {
-    unsigned int val = v;
+    unsigned int val = v >= 0 ? v : -(unsigned int)v;
     int sign = v < 0;
-    if (v < 0) {
-        if (v == INT_MIN) {
-            val = (unsigned int)(INT_MAX) + 1;
-        } else {
-            val = (unsigned int)(-v);
-        }
-    }
     if (sizeof(int) < sizeof(long long)) {
         return _qrintf_chk_long_core(ctx, 0, 0, (unsigned long)val, sign);
     }
@@ -987,15 +910,8 @@ static inline qrintf_chk_t _qrintf_chk_d(qrintf_chk_t ctx, int v)
 
 static inline qrintf_chk_t _qrintf_chk_width_d(qrintf_chk_t ctx, int fill_ch, int width, int v)
 {
-    unsigned int val = v;
+    unsigned int val = v >= 0 ? v : -(unsigned int)v;
     int sign = v < 0;
-    if (v < 0) {
-        if (v == INT_MIN) {
-            val = (unsigned int)(INT_MAX) + 1;
-        } else {
-            val = (unsigned int)(-v);
-        }
-    }
     if (sizeof(int) < sizeof(long long)) {
         return _qrintf_chk_long_core(ctx, fill_ch, width, (unsigned long)val, sign);
     }
@@ -1007,15 +923,8 @@ static inline qrintf_chk_t _qrintf_chk_width_d(qrintf_chk_t ctx, int fill_ch, in
 
 static inline qrintf_chk_t _qrintf_chk_ld(qrintf_chk_t ctx, long v)
 {
-    unsigned long val = v;
+    unsigned long val = v >= 0 ? v : -(unsigned long)v;
     int sign = v < 0;
-    if (v < 0) {
-        if (v == LONG_MIN) {
-            val = (unsigned long)(LONG_MAX) + 1;
-        } else {
-            val = (unsigned long)(-v);
-        }
-    }
     if (sizeof(long) < sizeof(long long)) {
         return _qrintf_chk_long_core(ctx, 0, 0, (unsigned long)val, sign);
     }
@@ -1027,15 +936,8 @@ static inline qrintf_chk_t _qrintf_chk_ld(qrintf_chk_t ctx, long v)
 
 static inline qrintf_chk_t _qrintf_chk_width_ld(qrintf_chk_t ctx, int fill_ch, int width, long v)
 {
-    unsigned long val = v;
+    unsigned long val = v >= 0 ? v : -(unsigned long)v;
     int sign = v < 0;
-    if (v < 0) {
-        if (v == LONG_MIN) {
-            val = (unsigned long)(LONG_MAX) + 1;
-        } else {
-            val = (unsigned long)(-v);
-        }
-    }
     if (sizeof(long) < sizeof(long long)) {
         return _qrintf_chk_long_core(ctx, fill_ch, width, (unsigned long)val, sign);
     }
@@ -1047,15 +949,8 @@ static inline qrintf_chk_t _qrintf_chk_width_ld(qrintf_chk_t ctx, int fill_ch, i
 
 static inline qrintf_chk_t _qrintf_chk_lld(qrintf_chk_t ctx, long long v)
 {
-    unsigned long long val = v;
+    unsigned long long val = v >= 0 ? v : -(unsigned long long)v;
     int sign = v < 0;
-    if (v < 0) {
-        if (v == LLONG_MIN) {
-            val = (unsigned long long)(LLONG_MAX) + 1;
-        } else {
-            val = (unsigned long long)(-v);
-        }
-    }
     if (sizeof(long long) < sizeof(long long)) {
         return _qrintf_chk_long_core(ctx, 0, 0, (unsigned long)val, sign);
     }
@@ -1067,15 +962,8 @@ static inline qrintf_chk_t _qrintf_chk_lld(qrintf_chk_t ctx, long long v)
 
 static inline qrintf_chk_t _qrintf_chk_width_lld(qrintf_chk_t ctx, int fill_ch, int width, long long v)
 {
-    unsigned long long val = v;
+    unsigned long long val = v >= 0 ? v : -(unsigned long long)v;
     int sign = v < 0;
-    if (v < 0) {
-        if (v == LLONG_MIN) {
-            val = (unsigned long long)(LLONG_MAX) + 1;
-        } else {
-            val = (unsigned long long)(-v);
-        }
-    }
     if (sizeof(long long) < sizeof(long long)) {
         return _qrintf_chk_long_core(ctx, fill_ch, width, (unsigned long)val, sign);
     }

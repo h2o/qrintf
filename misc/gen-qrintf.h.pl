@@ -26,18 +26,11 @@ use Text::MicroTemplate qw(build_mt);
 
 sub build_d {
     return build_mt(template => << 'EOT', escape_func => undef)->(@_);
-? my ($check, $type, $suffix, $min, $max) = @_;
+? my ($check, $type, $suffix) = @_;
 static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?>_<?= $suffix ?>(qrintf_<?= $check ?>_t ctx, <?= $type ?> v)
 {
-    unsigned <?= $type ?> val = v;
+    unsigned <?= $type ?> val = v >= 0 ? v : -(unsigned <?= $type ?>)v;
     int sign = v < 0;
-    if (v < 0) {
-        if (v == <?= $min ?>) {
-            val = (unsigned <?= $type ?>)(<?= $max ?>) + 1;
-        } else {
-            val = (unsigned <?= $type ?>)(-v);
-        }
-    }
     if (sizeof(<?= $type ?>) < sizeof(long long)) {
         return _qrintf_<?= $check ?>_long_core(ctx, 0, 0, (unsigned long)val, sign);
     }
@@ -49,15 +42,8 @@ static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?>_<?= $suffix ?>(qrintf
 
 static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?>_width_<?= $suffix ?>(qrintf_<?= $check ?>_t ctx, int fill_ch, int width, <?= $type ?> v)
 {
-    unsigned <?= $type ?> val = v;
+    unsigned <?= $type ?> val = v >= 0 ? v : -(unsigned <?= $type ?>)v;
     int sign = v < 0;
-    if (v < 0) {
-        if (v == <?= $min ?>) {
-            val = (unsigned <?= $type ?>)(<?= $max ?>) + 1;
-        } else {
-            val = (unsigned <?= $type ?>)(-v);
-        }
-    }
     if (sizeof(<?= $type ?>) < sizeof(long long)) {
         return _qrintf_<?= $check ?>_long_core(ctx, fill_ch, width, (unsigned long)val, sign);
     }
@@ -70,9 +56,9 @@ EOT
 }
 
 sub build_u {
-    my ($check, $type, $suffix, $max) = @_;
-    return build_mt(template => << 'EOT', escape_func => undef)->($check, $type, $suffix, $max);
-? my ($check, $type, $suffix, $max) = @_;
+    my ($check, $type, $suffix) = @_;
+    return build_mt(template => << 'EOT', escape_func => undef)->($check, $type, $suffix);
+? my ($check, $type, $suffix) = @_;
 
 static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?>_<?= $suffix ?>(qrintf_<?= $check ?>_t ctx, <?= $type ?> v)
 {
@@ -538,15 +524,15 @@ static inline qrintf_chk_t _qrintf_chk_long_long_core(qrintf_chk_t ctx, int fill
 }
 
 ? for my $check (qw(nck chk)) {
-<?= $build_d->($check, "short", "hd", "SHRT_MIN", "SHRT_MAX") ?>
-<?= $build_d->($check, "int", "d", "INT_MIN", "INT_MAX") ?>
-<?= $build_d->($check, "long", "ld", "LONG_MIN", "LONG_MAX") ?>
-<?= $build_d->($check, "long long", "lld", "LLONG_MIN", "LLONG_MAX") ?>
-<?= $build_u->($check, "unsigned short", "hu", "USHRT_MAX") ?>
-<?= $build_u->($check, "unsigned", "u", "UINT_MAX") ?>
-<?= $build_u->($check, "unsigned long", "lu", "ULONG_MAX") ?>
-<?= $build_u->($check, "unsigned long long", "llu", "ULLONG_MAX") ?>
-<?= $build_u->($check, "size_t", "zu", "SIZE_MAX") ?>
+<?= $build_d->($check, "short", "hd") ?>
+<?= $build_d->($check, "int", "d",) ?>
+<?= $build_d->($check, "long", "ld") ?>
+<?= $build_d->($check, "long long", "lld") ?>
+<?= $build_u->($check, "unsigned short", "hu") ?>
+<?= $build_u->($check, "unsigned", "u") ?>
+<?= $build_u->($check, "unsigned long", "lu") ?>
+<?= $build_u->($check, "unsigned long long", "llu") ?>
+<?= $build_u->($check, "size_t", "zu") ?>
 ?   for my $with_width (0..1) {
 <?= $build_x->($check, "unsigned short", "hx", $with_width) ?>
 <?= $build_x->($check, "unsigned", "x", $with_width) ?>
