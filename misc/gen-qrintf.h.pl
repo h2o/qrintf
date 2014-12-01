@@ -29,30 +29,42 @@ sub build_d {
 ? my ($check, $type, $suffix, $min, $max) = @_;
 static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?>_<?= $suffix ?>(qrintf_<?= $check ?>_t ctx, <?= $type ?> v)
 {
-    unsigned long long val = v;
+    unsigned <?= $type ?> val = v;
     int sign = v < 0;
     if (v < 0) {
         if (v == <?= $min ?>) {
-            val = (unsigned long long)(<?= $max ?>) + 1;
+            val = (unsigned <?= $type ?>)(<?= $max ?>) + 1;
         } else {
-            val = (unsigned long long)(-v);
+            val = (unsigned <?= $type ?>)(-v);
         }
     }
-    return _qrintf_<?= $check ?>_int_core(ctx, 0, 0, val, sign);
+    if (sizeof(<?= $type ?>) < sizeof(long long)) {
+        return _qrintf_<?= $check ?>_long_core(ctx, 0, 0, (unsigned long)val, sign);
+    }
+    else {
+        assert(sizeof(<?= $type ?>) == sizeof(long long));
+        return _qrintf_<?= $check ?>_long_long_core(ctx, 0, 0, (unsigned long long)val, sign);
+    }
 }
 
 static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?>_width_<?= $suffix ?>(qrintf_<?= $check ?>_t ctx, int fill_ch, int width, <?= $type ?> v)
 {
-    unsigned long long val = v;
+    unsigned <?= $type ?> val = v;
     int sign = v < 0;
     if (v < 0) {
         if (v == <?= $min ?>) {
-            val = (unsigned long long)(<?= $max ?>) + 1;
+            val = (unsigned <?= $type ?>)(<?= $max ?>) + 1;
         } else {
-            val = (unsigned long long)(-v);
+            val = (unsigned <?= $type ?>)(-v);
         }
     }
-    return _qrintf_<?= $check ?>_int_core(ctx, fill_ch, width, val, sign);
+    if (sizeof(<?= $type ?>) < sizeof(long long)) {
+        return _qrintf_<?= $check ?>_long_core(ctx, fill_ch, width, (unsigned long)val, sign);
+    }
+    else {
+        assert(sizeof(<?= $type ?>) == sizeof(long long));
+        return _qrintf_<?= $check ?>_long_long_core(ctx, fill_ch, width, (unsigned long long)val, sign);
+    }
 }
 EOT
 }
@@ -64,12 +76,24 @@ sub build_u {
 
 static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?>_<?= $suffix ?>(qrintf_<?= $check ?>_t ctx, <?= $type ?> v)
 {
-    return _qrintf_<?= $check ?>_int_core(ctx, 0, 0, (unsigned long long)v, 0);
+    if (sizeof(<?= $type ?>) < sizeof(long long)) {
+        return _qrintf_<?= $check ?>_long_core(ctx, 0, 0, (unsigned long)v, 0);
+    }
+    else {
+        assert(sizeof(<?= $type ?>) == sizeof(long long));
+        return _qrintf_<?= $check ?>_long_long_core(ctx, 0, 0, (unsigned long long)v, 0);
+    }
 }
 
 static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?>_width_<?= $suffix ?>(qrintf_<?= $check ?>_t ctx, int fill_ch, int width, <?= $type ?> v)
 {
-    return _qrintf_<?= $check ?>_int_core(ctx, fill_ch, width, (unsigned long long)v, 0);
+    if (sizeof(<?= $type ?>) < sizeof(long long)) {
+        return _qrintf_<?= $check ?>_long_core(ctx, fill_ch, width, (unsigned long)v, 0);
+    }
+    else {
+        assert(sizeof(<?= $type ?>) == sizeof(long long));
+        return _qrintf_<?= $check ?>_long_long_core(ctx, 0, 0, (unsigned long long)v, 0);
+    }
 }
 EOT
 }
@@ -303,10 +327,38 @@ static inline const char *_qrintf_get_digit_table(void)
     return digits_table;
 }
 
+/* from http://graphics.stanford.edu/~seander/bithacks.html#IntegerLog10 */
+static inline unsigned _qrintf_ilog10u32(unsigned long v)
+{
+#define LOG2(N) ((unsigned)((sizeof(long) * 8) - __builtin_clzl((N)-1)))
+    static const unsigned long ilog10table[] = {
+        1UL,
+        10UL,
+        100UL,
+        1000UL,
+        10000UL,
+        100000UL,
+        1000000UL,
+        10000000UL,
+        100000000UL,
+        1000000000UL,
+        ULONG_MAX,
+    };
+    if (v != 0) {
+        unsigned t;
+        assert(sizeof(long) == sizeof(int));
+        t = ((LOG2(v) + 1) * 1233) / 4096;
+        return t + (v >= ilog10table[t]);
+    }
+    else {
+        return 1;
+    }
+#undef LOG2
+}
+
 static inline unsigned _qrintf_ilog10ull(unsigned long long v)
 {
 #define LOG2(N) ((unsigned)((sizeof(long long) * 8) - __builtin_clzll((N)-1)))
-    /* from http://graphics.stanford.edu/~seander/bithacks.html#IntegerLog10 */
     static const unsigned long long ilog10table[] = {
         1ULL,
         10ULL,
@@ -342,7 +394,21 @@ static inline unsigned _qrintf_ilog10ull(unsigned long long v)
 #undef LOG2
 }
 
-static inline void _qrintf_int_core(char *p, unsigned long long val)
+static inline unsigned _qrintf_ilog10ul(unsigned long v)
+{
+    if (sizeof(long) == 4) {
+        return _qrintf_ilog10u32(v);
+    }
+    else if (sizeof(long) == 8) {
+        assert(sizeof(long) == sizeof(long long));
+        return _qrintf_ilog10ull((unsigned long long)v);
+    }
+    else {
+        assert(0 && "size of `long` is not 32bit nor 64bit");
+    }
+}
+
+static inline void _qrintf_long_core(char *p, unsigned long val)
 {
     const char *digits = _qrintf_get_digit_table();
     while (val >= 100) {
@@ -359,9 +425,45 @@ static inline void _qrintf_int_core(char *p, unsigned long long val)
     }
 }
 
-static inline qrintf_nck_t _qrintf_nck_int_core(qrintf_nck_t ctx, int fill_ch, int width, unsigned long long v, int sign)
+static inline void _qrintf_long_long_core(char *p, unsigned long long val)
 {
-    unsigned long long val = (unsigned long long) v;
+    const char *digits = _qrintf_get_digit_table();
+    while (val >= 100) {
+        unsigned idx = val % 100 * 2;
+        *--p = digits[idx + 1];
+        *--p = digits[idx];
+        val /= 100;
+    }
+    if (val < 10) {
+        *--p = '0' + val;
+    } else {
+        *--p = digits[val * 2 + 1];
+        *--p = digits[val * 2];
+    }
+}
+
+static inline qrintf_nck_t _qrintf_nck_long_core(qrintf_nck_t ctx, int fill_ch, int width, unsigned long val, int sign)
+{
+    int len = _qrintf_ilog10ul(val);
+    int wlen = len;
+    if (fill_ch == ' ') {
+        ctx = _qrintf_nck_fill(ctx, fill_ch, len + sign, width);
+    }
+    if (sign) {
+        ctx.str[ctx.off++] = '-';
+        width -= 1;
+    }
+    if (fill_ch == '0') {
+        ctx = _qrintf_nck_fill(ctx, fill_ch, len, width);
+    }
+
+    _qrintf_long_core(ctx.str + ctx.off + wlen, val);
+    ctx.off += len;
+    return ctx;
+}
+
+static inline qrintf_nck_t _qrintf_nck_long_long_core(qrintf_nck_t ctx, int fill_ch, int width, unsigned long long val, int sign)
+{
     int len = _qrintf_ilog10ull(val);
     int wlen = len;
     if (fill_ch == ' ') {
@@ -375,14 +477,41 @@ static inline qrintf_nck_t _qrintf_nck_int_core(qrintf_nck_t ctx, int fill_ch, i
         ctx = _qrintf_nck_fill(ctx, fill_ch, len, width);
     }
 
-    _qrintf_int_core(ctx.str + ctx.off + wlen, val);
+    _qrintf_long_long_core(ctx.str + ctx.off + wlen, val);
     ctx.off += len;
     return ctx;
 }
 
-static inline qrintf_chk_t _qrintf_chk_int_core(qrintf_chk_t ctx, int fill_ch, int width, unsigned long long v, int sign)
+static inline qrintf_chk_t _qrintf_chk_long_core(qrintf_chk_t ctx, int fill_ch, int width, unsigned long val, int sign)
 {
-    unsigned long long val = (unsigned long long) v;
+    int len = _qrintf_ilog10ul(val);
+    int wlen = len;
+    if (ctx.off + wlen + sign > ctx.size) {
+        int n = ctx.off + wlen + sign - ctx.size;
+        wlen -= n;
+        while (n-- != 0) {
+            val /= 10;
+        }
+    }
+    if (fill_ch == ' ') {
+        ctx = _qrintf_chk_fill(ctx, fill_ch, len + sign, width);
+    }
+    if (sign && ctx.off + 1 < ctx.size) {
+        ctx.str[ctx.off++] = '-';
+        width -= 1;
+    }
+    if (fill_ch == '0') {
+        ctx = _qrintf_chk_fill(ctx, fill_ch, len, width);
+    }
+
+    _qrintf_long_core(ctx.str + ctx.off + wlen, val);
+    ctx.off += len;
+    return ctx;
+}
+
+
+static inline qrintf_chk_t _qrintf_chk_long_long_core(qrintf_chk_t ctx, int fill_ch, int width, unsigned long long val, int sign)
+{
     int len = _qrintf_ilog10ull(val);
     int wlen = len;
     if (ctx.off + wlen + sign > ctx.size) {
@@ -403,7 +532,7 @@ static inline qrintf_chk_t _qrintf_chk_int_core(qrintf_chk_t ctx, int fill_ch, i
         ctx = _qrintf_chk_fill(ctx, fill_ch, len, width);
     }
 
-    _qrintf_int_core(ctx.str + ctx.off + wlen, val);
+    _qrintf_long_long_core(ctx.str + ctx.off + wlen, val);
     ctx.off += len;
     return ctx;
 }
