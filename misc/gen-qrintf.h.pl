@@ -347,15 +347,15 @@ static inline void _qrintf_int_core(char *p, unsigned long long val)
     const char *digits = _qrintf_get_digit_table();
     while (val >= 100) {
         unsigned idx = val % 100 * 2;
-        *p-- = digits[idx + 1];
-        *p-- = digits[idx];
+        *--p = digits[idx + 1];
+        *--p = digits[idx];
         val /= 100;
     }
     if (val < 10) {
-        *p-- = '0' + val;
+        *--p = '0' + val;
     } else {
-        *p-- = digits[val * 2 + 1];
-        *p-- = digits[val * 2];
+        *--p = digits[val * 2 + 1];
+        *--p = digits[val * 2];
     }
 }
 
@@ -375,7 +375,7 @@ static inline qrintf_nck_t _qrintf_nck_int_core(qrintf_nck_t ctx, int fill_ch, i
         ctx = _qrintf_nck_fill(ctx, fill_ch, len, width);
     }
 
-    _qrintf_int_core(ctx.str + ctx.off + wlen - 1, val);
+    _qrintf_int_core(ctx.str + ctx.off + wlen, val);
     ctx.off += len;
     return ctx;
 }
@@ -403,7 +403,7 @@ static inline qrintf_chk_t _qrintf_chk_int_core(qrintf_chk_t ctx, int fill_ch, i
         ctx = _qrintf_chk_fill(ctx, fill_ch, len, width);
     }
 
-    _qrintf_int_core(ctx.str + ctx.off + wlen - 1, val);
+    _qrintf_int_core(ctx.str + ctx.off + wlen, val);
     ctx.off += len;
     return ctx;
 }
