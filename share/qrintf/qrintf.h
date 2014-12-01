@@ -32,6 +32,7 @@ extern "C" {
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 #undef sprintf
 #define sprintf(...) _qp_sprintf(__VA_ARGS__)
@@ -204,9 +205,9 @@ static inline const char *_qrintf_get_digit_table(void)
     return digits_table;
 }
 
-static inline unsigned ilog10ull(uint64_t v)
+static inline unsigned _qrintf_ilog10ull(unsigned long long v)
 {
-#define LOG2(N) ((unsigned)((sizeof(unsigned long long) * 8) - __builtin_clzll((N)-1)))
+#define LOG2(N) ((unsigned)((sizeof(long long) * 8) - __builtin_clzll((N)-1)))
     /* from http://graphics.stanford.edu/~seander/bithacks.html#IntegerLog10 */
     static const unsigned long long ilog10table[] = {
         1ULL,
@@ -233,6 +234,7 @@ static inline unsigned ilog10ull(uint64_t v)
     };
     if (v != 0) {
         unsigned t;
+        assert(sizeof(long long) == 8);
         t = ((LOG2(v) + 1) * 1233) / 4096;
         return t + (v >= ilog10table[t]);
     }
@@ -262,7 +264,7 @@ static inline void _qrintf_int_core(char *p, unsigned long long val)
 static inline qrintf_nck_t _qrintf_nck_int_core(qrintf_nck_t ctx, int fill_ch, int width, unsigned long long v, int sign)
 {
     unsigned long long val = (unsigned long long) v;
-    int len = ilog10ull(val);
+    int len = _qrintf_ilog10ull(val);
     int wlen = len;
     if (fill_ch == ' ') {
         ctx = _qrintf_nck_fill(ctx, fill_ch, len + sign, width);
@@ -283,7 +285,7 @@ static inline qrintf_nck_t _qrintf_nck_int_core(qrintf_nck_t ctx, int fill_ch, i
 static inline qrintf_chk_t _qrintf_chk_int_core(qrintf_chk_t ctx, int fill_ch, int width, unsigned long long v, int sign)
 {
     unsigned long long val = (unsigned long long) v;
-    int len = ilog10ull(val);
+    int len = _qrintf_ilog10ull(val);
     int wlen = len;
     if (ctx.off + wlen + sign > ctx.size) {
         int n = ctx.off + wlen + sign - ctx.size - 1;
