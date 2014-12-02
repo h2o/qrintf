@@ -88,10 +88,12 @@ sub build_x {
     my ($check, $type, $suffix, $with_width) = @_;
     return build_mt(template => << 'EOT', escape_func => undef)->($check, $type, $suffix, $with_width ? '_width' : '');
 ? my ($check, $type, $suffix, $width) = @_;
-? my $push = $check eq 'chk' ? sub { "do { int ch = $_[0]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0)" } : sub { "ctx.str[ctx.off++] = $_[0]" };
 static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?><?= $width ?>_<?= $suffix ?>(qrintf_<?= $check ?>_t ctx<?= $width ? ", int fill_ch, int width" : "" ?>, <?= $type ?> v, const char *chars)
 {
     int len;
+? if ($check eq 'chk') {
+    size_t off;
+? }
     if (v != 0) {
         int bits;
         if (sizeof(<?= $type ?>) == sizeof(unsigned long long))
@@ -107,10 +109,23 @@ static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?><?= $width ?>_<?= $suf
 ? if ($width) {
     ctx = _qrintf_<?= $check ?>_fill(ctx, fill_ch, len, width);
 ? }
+? if ($check eq 'chk') {
+    off = ctx.off;
+    ctx.off += len;
+    if (ctx.off > ctx.size) {
+        int n = off + len - ctx.size;
+        len -= n;
+        v >>= n * 4;
+    }
+? }
     len *= 4;
     do {
         len -= 4;
-        <?= $push->(q{chars[(v >> len) & 0xf]}) ?>;
+? if ($check eq 'chk') {
+        ctx.str[off++] = chars[(v >> len) & 0xf];
+? } else {
+        ctx.str[ctx.off++] = chars[(v >> len) & 0xf];
+? }
     } while (len != 0);
     return ctx;
 }

@@ -1091,6 +1091,7 @@ static inline qrintf_chk_t _qrintf_chk_width_zu(qrintf_chk_t ctx, int fill_ch, i
 static inline qrintf_chk_t _qrintf_chk_hx(qrintf_chk_t ctx, unsigned short v, const char *chars)
 {
     int len;
+    size_t off;
     if (v != 0) {
         int bits;
         if (sizeof(unsigned short) == sizeof(unsigned long long))
@@ -1103,10 +1104,17 @@ static inline qrintf_chk_t _qrintf_chk_hx(qrintf_chk_t ctx, unsigned short v, co
     } else {
         len = 1;
     }
+    off = ctx.off;
+    ctx.off += len;
+    if (ctx.off > ctx.size) {
+        int n = off + len - ctx.size;
+        len -= n;
+        v >>= n * 4;
+    }
     len *= 4;
     do {
         len -= 4;
-        do { int ch = chars[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
+        ctx.str[off++] = chars[(v >> len) & 0xf];
     } while (len != 0);
     return ctx;
 }
@@ -1114,6 +1122,7 @@ static inline qrintf_chk_t _qrintf_chk_hx(qrintf_chk_t ctx, unsigned short v, co
 static inline qrintf_chk_t _qrintf_chk_x(qrintf_chk_t ctx, unsigned v, const char *chars)
 {
     int len;
+    size_t off;
     if (v != 0) {
         int bits;
         if (sizeof(unsigned) == sizeof(unsigned long long))
@@ -1126,10 +1135,17 @@ static inline qrintf_chk_t _qrintf_chk_x(qrintf_chk_t ctx, unsigned v, const cha
     } else {
         len = 1;
     }
+    off = ctx.off;
+    ctx.off += len;
+    if (ctx.off > ctx.size) {
+        int n = off + len - ctx.size;
+        len -= n;
+        v >>= n * 4;
+    }
     len *= 4;
     do {
         len -= 4;
-        do { int ch = chars[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
+        ctx.str[off++] = chars[(v >> len) & 0xf];
     } while (len != 0);
     return ctx;
 }
@@ -1137,6 +1153,7 @@ static inline qrintf_chk_t _qrintf_chk_x(qrintf_chk_t ctx, unsigned v, const cha
 static inline qrintf_chk_t _qrintf_chk_lx(qrintf_chk_t ctx, unsigned long v, const char *chars)
 {
     int len;
+    size_t off;
     if (v != 0) {
         int bits;
         if (sizeof(unsigned long) == sizeof(unsigned long long))
@@ -1149,10 +1166,17 @@ static inline qrintf_chk_t _qrintf_chk_lx(qrintf_chk_t ctx, unsigned long v, con
     } else {
         len = 1;
     }
+    off = ctx.off;
+    ctx.off += len;
+    if (ctx.off > ctx.size) {
+        int n = off + len - ctx.size;
+        len -= n;
+        v >>= n * 4;
+    }
     len *= 4;
     do {
         len -= 4;
-        do { int ch = chars[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
+        ctx.str[off++] = chars[(v >> len) & 0xf];
     } while (len != 0);
     return ctx;
 }
@@ -1160,6 +1184,7 @@ static inline qrintf_chk_t _qrintf_chk_lx(qrintf_chk_t ctx, unsigned long v, con
 static inline qrintf_chk_t _qrintf_chk_llx(qrintf_chk_t ctx, unsigned long long v, const char *chars)
 {
     int len;
+    size_t off;
     if (v != 0) {
         int bits;
         if (sizeof(unsigned long long) == sizeof(unsigned long long))
@@ -1172,10 +1197,17 @@ static inline qrintf_chk_t _qrintf_chk_llx(qrintf_chk_t ctx, unsigned long long 
     } else {
         len = 1;
     }
+    off = ctx.off;
+    ctx.off += len;
+    if (ctx.off > ctx.size) {
+        int n = off + len - ctx.size;
+        len -= n;
+        v >>= n * 4;
+    }
     len *= 4;
     do {
         len -= 4;
-        do { int ch = chars[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
+        ctx.str[off++] = chars[(v >> len) & 0xf];
     } while (len != 0);
     return ctx;
 }
@@ -1183,6 +1215,7 @@ static inline qrintf_chk_t _qrintf_chk_llx(qrintf_chk_t ctx, unsigned long long 
 static inline qrintf_chk_t _qrintf_chk_zx(qrintf_chk_t ctx, size_t v, const char *chars)
 {
     int len;
+    size_t off;
     if (v != 0) {
         int bits;
         if (sizeof(size_t) == sizeof(unsigned long long))
@@ -1195,10 +1228,17 @@ static inline qrintf_chk_t _qrintf_chk_zx(qrintf_chk_t ctx, size_t v, const char
     } else {
         len = 1;
     }
+    off = ctx.off;
+    ctx.off += len;
+    if (ctx.off > ctx.size) {
+        int n = off + len - ctx.size;
+        len -= n;
+        v >>= n * 4;
+    }
     len *= 4;
     do {
         len -= 4;
-        do { int ch = chars[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
+        ctx.str[off++] = chars[(v >> len) & 0xf];
     } while (len != 0);
     return ctx;
 }
@@ -1206,6 +1246,7 @@ static inline qrintf_chk_t _qrintf_chk_zx(qrintf_chk_t ctx, size_t v, const char
 static inline qrintf_chk_t _qrintf_chk_width_hx(qrintf_chk_t ctx, int fill_ch, int width, unsigned short v, const char *chars)
 {
     int len;
+    size_t off;
     if (v != 0) {
         int bits;
         if (sizeof(unsigned short) == sizeof(unsigned long long))
@@ -1219,10 +1260,17 @@ static inline qrintf_chk_t _qrintf_chk_width_hx(qrintf_chk_t ctx, int fill_ch, i
         len = 1;
     }
     ctx = _qrintf_chk_fill(ctx, fill_ch, len, width);
+    off = ctx.off;
+    ctx.off += len;
+    if (ctx.off > ctx.size) {
+        int n = off + len - ctx.size;
+        len -= n;
+        v >>= n * 4;
+    }
     len *= 4;
     do {
         len -= 4;
-        do { int ch = chars[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
+        ctx.str[off++] = chars[(v >> len) & 0xf];
     } while (len != 0);
     return ctx;
 }
@@ -1230,6 +1278,7 @@ static inline qrintf_chk_t _qrintf_chk_width_hx(qrintf_chk_t ctx, int fill_ch, i
 static inline qrintf_chk_t _qrintf_chk_width_x(qrintf_chk_t ctx, int fill_ch, int width, unsigned v, const char *chars)
 {
     int len;
+    size_t off;
     if (v != 0) {
         int bits;
         if (sizeof(unsigned) == sizeof(unsigned long long))
@@ -1243,10 +1292,17 @@ static inline qrintf_chk_t _qrintf_chk_width_x(qrintf_chk_t ctx, int fill_ch, in
         len = 1;
     }
     ctx = _qrintf_chk_fill(ctx, fill_ch, len, width);
+    off = ctx.off;
+    ctx.off += len;
+    if (ctx.off > ctx.size) {
+        int n = off + len - ctx.size;
+        len -= n;
+        v >>= n * 4;
+    }
     len *= 4;
     do {
         len -= 4;
-        do { int ch = chars[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
+        ctx.str[off++] = chars[(v >> len) & 0xf];
     } while (len != 0);
     return ctx;
 }
@@ -1254,6 +1310,7 @@ static inline qrintf_chk_t _qrintf_chk_width_x(qrintf_chk_t ctx, int fill_ch, in
 static inline qrintf_chk_t _qrintf_chk_width_lx(qrintf_chk_t ctx, int fill_ch, int width, unsigned long v, const char *chars)
 {
     int len;
+    size_t off;
     if (v != 0) {
         int bits;
         if (sizeof(unsigned long) == sizeof(unsigned long long))
@@ -1267,10 +1324,17 @@ static inline qrintf_chk_t _qrintf_chk_width_lx(qrintf_chk_t ctx, int fill_ch, i
         len = 1;
     }
     ctx = _qrintf_chk_fill(ctx, fill_ch, len, width);
+    off = ctx.off;
+    ctx.off += len;
+    if (ctx.off > ctx.size) {
+        int n = off + len - ctx.size;
+        len -= n;
+        v >>= n * 4;
+    }
     len *= 4;
     do {
         len -= 4;
-        do { int ch = chars[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
+        ctx.str[off++] = chars[(v >> len) & 0xf];
     } while (len != 0);
     return ctx;
 }
@@ -1278,6 +1342,7 @@ static inline qrintf_chk_t _qrintf_chk_width_lx(qrintf_chk_t ctx, int fill_ch, i
 static inline qrintf_chk_t _qrintf_chk_width_llx(qrintf_chk_t ctx, int fill_ch, int width, unsigned long long v, const char *chars)
 {
     int len;
+    size_t off;
     if (v != 0) {
         int bits;
         if (sizeof(unsigned long long) == sizeof(unsigned long long))
@@ -1291,10 +1356,17 @@ static inline qrintf_chk_t _qrintf_chk_width_llx(qrintf_chk_t ctx, int fill_ch, 
         len = 1;
     }
     ctx = _qrintf_chk_fill(ctx, fill_ch, len, width);
+    off = ctx.off;
+    ctx.off += len;
+    if (ctx.off > ctx.size) {
+        int n = off + len - ctx.size;
+        len -= n;
+        v >>= n * 4;
+    }
     len *= 4;
     do {
         len -= 4;
-        do { int ch = chars[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
+        ctx.str[off++] = chars[(v >> len) & 0xf];
     } while (len != 0);
     return ctx;
 }
@@ -1302,6 +1374,7 @@ static inline qrintf_chk_t _qrintf_chk_width_llx(qrintf_chk_t ctx, int fill_ch, 
 static inline qrintf_chk_t _qrintf_chk_width_zx(qrintf_chk_t ctx, int fill_ch, int width, size_t v, const char *chars)
 {
     int len;
+    size_t off;
     if (v != 0) {
         int bits;
         if (sizeof(size_t) == sizeof(unsigned long long))
@@ -1315,10 +1388,17 @@ static inline qrintf_chk_t _qrintf_chk_width_zx(qrintf_chk_t ctx, int fill_ch, i
         len = 1;
     }
     ctx = _qrintf_chk_fill(ctx, fill_ch, len, width);
+    off = ctx.off;
+    ctx.off += len;
+    if (ctx.off > ctx.size) {
+        int n = off + len - ctx.size;
+        len -= n;
+        v >>= n * 4;
+    }
     len *= 4;
     do {
         len -= 4;
-        do { int ch = chars[(v >> len) & 0xf]; if (ctx.off < ctx.size) ctx.str[ctx.off] = ch; ++ctx.off; } while (0);
+        ctx.str[off++] = chars[(v >> len) & 0xf];
     } while (len != 0);
     return ctx;
 }
