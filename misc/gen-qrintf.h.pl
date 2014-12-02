@@ -92,7 +92,7 @@ static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?><?= $width ?>_<?= $suf
 {
     int len;
 ? if ($check eq 'chk') {
-    size_t off;
+    int rest = 0;
 ? }
     if (v != 0) {
         int bits;
@@ -110,23 +110,20 @@ static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?><?= $width ?>_<?= $suf
     ctx = _qrintf_<?= $check ?>_fill(ctx, fill_ch, len, width);
 ? }
 ? if ($check eq 'chk') {
-    off = ctx.off;
-    ctx.off += len;
-    if (ctx.off > ctx.size) {
-        int n = off + len - ctx.size;
-        len -= n;
-        v >>= n * 4;
+    if (ctx.off + len > ctx.size) {
+        rest = ctx.off + len - ctx.size;
+        len -= rest;
+        v >>= rest * 4;
     }
 ? }
     len *= 4;
     do {
         len -= 4;
-? if ($check eq 'chk') {
-        ctx.str[off++] = chars[(v >> len) & 0xf];
-? } else {
         ctx.str[ctx.off++] = chars[(v >> len) & 0xf];
-? }
     } while (len != 0);
+? if ($check eq 'chk') {
+    ctx.off += rest;
+? }
     return ctx;
 }
 EOT
