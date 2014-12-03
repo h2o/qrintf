@@ -138,6 +138,11 @@ void test_simple()
     CHECK_SNPRINTF(3, "%d", 12345);
     CHECK_SNPRINTF(10, "%u.%u.%u.%u", 12, 34, 56, 78);
     CHECK_SNPRINTF(3, "%x", 0xffff);
+
+    CHECK_SNPRINTF(3, "%hx",  USHRT_MAX);
+    CHECK_SNPRINTF(3, "%x",   UINT_MAX);
+    CHECK_SNPRINTF(3, "%lx",  ULONG_MAX);
+    CHECK_SNPRINTF(3, "%llx", ULLONG_MAX);
 }
 
 void test_composite()
