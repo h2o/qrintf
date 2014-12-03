@@ -636,7 +636,7 @@ static inline qrintf_nck_t _qrintf_nck_width_zu(qrintf_nck_t ctx, int fill_ch, i
 
 static inline qrintf_nck_t _qrintf_nck_hx(qrintf_nck_t ctx, unsigned short v, const char *chars)
 {
-    int len;
+    size_t len;
     if (v != 0) {
         int bits;
         if (sizeof(unsigned short) == sizeof(unsigned long long))
@@ -659,7 +659,7 @@ static inline qrintf_nck_t _qrintf_nck_hx(qrintf_nck_t ctx, unsigned short v, co
 
 static inline qrintf_nck_t _qrintf_nck_x(qrintf_nck_t ctx, unsigned v, const char *chars)
 {
-    int len;
+    size_t len;
     if (v != 0) {
         int bits;
         if (sizeof(unsigned) == sizeof(unsigned long long))
@@ -682,7 +682,7 @@ static inline qrintf_nck_t _qrintf_nck_x(qrintf_nck_t ctx, unsigned v, const cha
 
 static inline qrintf_nck_t _qrintf_nck_lx(qrintf_nck_t ctx, unsigned long v, const char *chars)
 {
-    int len;
+    size_t len;
     if (v != 0) {
         int bits;
         if (sizeof(unsigned long) == sizeof(unsigned long long))
@@ -705,7 +705,7 @@ static inline qrintf_nck_t _qrintf_nck_lx(qrintf_nck_t ctx, unsigned long v, con
 
 static inline qrintf_nck_t _qrintf_nck_llx(qrintf_nck_t ctx, unsigned long long v, const char *chars)
 {
-    int len;
+    size_t len;
     if (v != 0) {
         int bits;
         if (sizeof(unsigned long long) == sizeof(unsigned long long))
@@ -728,7 +728,7 @@ static inline qrintf_nck_t _qrintf_nck_llx(qrintf_nck_t ctx, unsigned long long 
 
 static inline qrintf_nck_t _qrintf_nck_zx(qrintf_nck_t ctx, size_t v, const char *chars)
 {
-    int len;
+    size_t len;
     if (v != 0) {
         int bits;
         if (sizeof(size_t) == sizeof(unsigned long long))
@@ -751,7 +751,7 @@ static inline qrintf_nck_t _qrintf_nck_zx(qrintf_nck_t ctx, size_t v, const char
 
 static inline qrintf_nck_t _qrintf_nck_width_hx(qrintf_nck_t ctx, int fill_ch, int width, unsigned short v, const char *chars)
 {
-    int len;
+    size_t len;
     if (v != 0) {
         int bits;
         if (sizeof(unsigned short) == sizeof(unsigned long long))
@@ -775,7 +775,7 @@ static inline qrintf_nck_t _qrintf_nck_width_hx(qrintf_nck_t ctx, int fill_ch, i
 
 static inline qrintf_nck_t _qrintf_nck_width_x(qrintf_nck_t ctx, int fill_ch, int width, unsigned v, const char *chars)
 {
-    int len;
+    size_t len;
     if (v != 0) {
         int bits;
         if (sizeof(unsigned) == sizeof(unsigned long long))
@@ -799,7 +799,7 @@ static inline qrintf_nck_t _qrintf_nck_width_x(qrintf_nck_t ctx, int fill_ch, in
 
 static inline qrintf_nck_t _qrintf_nck_width_lx(qrintf_nck_t ctx, int fill_ch, int width, unsigned long v, const char *chars)
 {
-    int len;
+    size_t len;
     if (v != 0) {
         int bits;
         if (sizeof(unsigned long) == sizeof(unsigned long long))
@@ -823,7 +823,7 @@ static inline qrintf_nck_t _qrintf_nck_width_lx(qrintf_nck_t ctx, int fill_ch, i
 
 static inline qrintf_nck_t _qrintf_nck_width_llx(qrintf_nck_t ctx, int fill_ch, int width, unsigned long long v, const char *chars)
 {
-    int len;
+    size_t len;
     if (v != 0) {
         int bits;
         if (sizeof(unsigned long long) == sizeof(unsigned long long))
@@ -847,7 +847,7 @@ static inline qrintf_nck_t _qrintf_nck_width_llx(qrintf_nck_t ctx, int fill_ch, 
 
 static inline qrintf_nck_t _qrintf_nck_width_zx(qrintf_nck_t ctx, int fill_ch, int width, size_t v, const char *chars)
 {
-    int len;
+    size_t len;
     if (v != 0) {
         int bits;
         if (sizeof(size_t) == sizeof(unsigned long long))
@@ -1090,8 +1090,8 @@ static inline qrintf_chk_t _qrintf_chk_width_zu(qrintf_chk_t ctx, int fill_ch, i
 
 static inline qrintf_chk_t _qrintf_chk_hx(qrintf_chk_t ctx, unsigned short v, const char *chars)
 {
-    int len;
-    int rest = 0;
+    size_t len;
+    size_t rest = 0;
     if (v != 0) {
         int bits;
         if (sizeof(unsigned short) == sizeof(unsigned long long))
@@ -1120,8 +1120,8 @@ static inline qrintf_chk_t _qrintf_chk_hx(qrintf_chk_t ctx, unsigned short v, co
 
 static inline qrintf_chk_t _qrintf_chk_x(qrintf_chk_t ctx, unsigned v, const char *chars)
 {
-    int len;
-    int rest = 0;
+    size_t len;
+    size_t rest = 0;
     if (v != 0) {
         int bits;
         if (sizeof(unsigned) == sizeof(unsigned long long))
@@ -1150,8 +1150,8 @@ static inline qrintf_chk_t _qrintf_chk_x(qrintf_chk_t ctx, unsigned v, const cha
 
 static inline qrintf_chk_t _qrintf_chk_lx(qrintf_chk_t ctx, unsigned long v, const char *chars)
 {
-    int len;
-    int rest = 0;
+    size_t len;
+    size_t rest = 0;
     if (v != 0) {
         int bits;
         if (sizeof(unsigned long) == sizeof(unsigned long long))
@@ -1180,8 +1180,8 @@ static inline qrintf_chk_t _qrintf_chk_lx(qrintf_chk_t ctx, unsigned long v, con
 
 static inline qrintf_chk_t _qrintf_chk_llx(qrintf_chk_t ctx, unsigned long long v, const char *chars)
 {
-    int len;
-    int rest = 0;
+    size_t len;
+    size_t rest = 0;
     if (v != 0) {
         int bits;
         if (sizeof(unsigned long long) == sizeof(unsigned long long))
@@ -1210,8 +1210,8 @@ static inline qrintf_chk_t _qrintf_chk_llx(qrintf_chk_t ctx, unsigned long long 
 
 static inline qrintf_chk_t _qrintf_chk_zx(qrintf_chk_t ctx, size_t v, const char *chars)
 {
-    int len;
-    int rest = 0;
+    size_t len;
+    size_t rest = 0;
     if (v != 0) {
         int bits;
         if (sizeof(size_t) == sizeof(unsigned long long))
@@ -1240,8 +1240,8 @@ static inline qrintf_chk_t _qrintf_chk_zx(qrintf_chk_t ctx, size_t v, const char
 
 static inline qrintf_chk_t _qrintf_chk_width_hx(qrintf_chk_t ctx, int fill_ch, int width, unsigned short v, const char *chars)
 {
-    int len;
-    int rest = 0;
+    size_t len;
+    size_t rest = 0;
     if (v != 0) {
         int bits;
         if (sizeof(unsigned short) == sizeof(unsigned long long))
@@ -1271,8 +1271,8 @@ static inline qrintf_chk_t _qrintf_chk_width_hx(qrintf_chk_t ctx, int fill_ch, i
 
 static inline qrintf_chk_t _qrintf_chk_width_x(qrintf_chk_t ctx, int fill_ch, int width, unsigned v, const char *chars)
 {
-    int len;
-    int rest = 0;
+    size_t len;
+    size_t rest = 0;
     if (v != 0) {
         int bits;
         if (sizeof(unsigned) == sizeof(unsigned long long))
@@ -1302,8 +1302,8 @@ static inline qrintf_chk_t _qrintf_chk_width_x(qrintf_chk_t ctx, int fill_ch, in
 
 static inline qrintf_chk_t _qrintf_chk_width_lx(qrintf_chk_t ctx, int fill_ch, int width, unsigned long v, const char *chars)
 {
-    int len;
-    int rest = 0;
+    size_t len;
+    size_t rest = 0;
     if (v != 0) {
         int bits;
         if (sizeof(unsigned long) == sizeof(unsigned long long))
@@ -1333,8 +1333,8 @@ static inline qrintf_chk_t _qrintf_chk_width_lx(qrintf_chk_t ctx, int fill_ch, i
 
 static inline qrintf_chk_t _qrintf_chk_width_llx(qrintf_chk_t ctx, int fill_ch, int width, unsigned long long v, const char *chars)
 {
-    int len;
-    int rest = 0;
+    size_t len;
+    size_t rest = 0;
     if (v != 0) {
         int bits;
         if (sizeof(unsigned long long) == sizeof(unsigned long long))
@@ -1364,8 +1364,8 @@ static inline qrintf_chk_t _qrintf_chk_width_llx(qrintf_chk_t ctx, int fill_ch, 
 
 static inline qrintf_chk_t _qrintf_chk_width_zx(qrintf_chk_t ctx, int fill_ch, int width, size_t v, const char *chars)
 {
-    int len;
-    int rest = 0;
+    size_t len;
+    size_t rest = 0;
     if (v != 0) {
         int bits;
         if (sizeof(size_t) == sizeof(unsigned long long))

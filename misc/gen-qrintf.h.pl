@@ -90,9 +90,9 @@ sub build_x {
 ? my ($check, $type, $suffix, $width) = @_;
 static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?><?= $width ?>_<?= $suffix ?>(qrintf_<?= $check ?>_t ctx<?= $width ? ", int fill_ch, int width" : "" ?>, <?= $type ?> v, const char *chars)
 {
-    int len;
+    size_t len;
 ? if ($check eq 'chk') {
-    int rest = 0;
+    size_t rest = 0;
 ? }
     if (v != 0) {
         int bits;
