@@ -56,6 +56,10 @@ The command reads a C source file from the standard input, applies the necessary
 FAQ
 ---
 
+__Q. License?__
+
+The software is provided under the MIT license.
+
 __Q. Why did you develop qrintf?__
 
 Because sprintf is the bottleneck in some of my applications.  I plan to use it in [H2O](https://github.com/h2o/h2o), an optimized HTTP server/library implementation with support for HTTP/1.x, HTTP/2, websocket.
