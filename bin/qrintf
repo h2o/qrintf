@@ -11,8 +11,19 @@ if (@ARGV < 2 || grep { $_ =~ /^(-h|--help)$/s } @ARGV) {
     exit 0;
 }
 
-my $cc = shift @ARGV;
-my $fn = pop @ARGV;
+my @cflags = @ARGV;
+my $cc = shift @cflags;
+my $output_fn;
+for (my $i = 0; $i < @cflags;) {
+    if ($i + 1 < @cflags && $cflags[$i] eq '-o') {
+        $output_fn = $cflags[$i + 1];
+        splice @cflags, $i, 2;
+    } else {
+        ++$i;
+    }
+}
+my $fn = pop @cflags;
+
 my $pwd = dirname($0);
 
 my $tempdir = tempdir(CLEANUP => 1);
@@ -22,7 +33,7 @@ $tempfn =~ s{\.c(.*)$}{.i@{[$1 ? 'i' : '']}}s
 $tempfn = "$tempdir/$tempfn";
 
 # invoke cpp
-open(my $fh, "-|", $cc, '-E', (grep { $_ !~ /^(-o|-c)$/s } @ARGV), '-DQRINTF=1', '-include', "$pwd/../share/qrintf/qrintf.h", $fn)
+open(my $fh, "-|", $cc, '-E', (grep { $_ ne '-c' } @cflags), '-DQRINTF=1', '-include', "$pwd/../share/qrintf/qrintf.h", $fn)
     or die "failed to invoke $cc -E:$!";
 my $src = do { local $/; <$fh> };
 close $fh
@@ -35,7 +46,12 @@ print $fh $src;
 close $fh
     or delegate_exit_status("$pwd/qrintf-pp", $?);
 
-if (grep { $_ eq '-E' } @ARGV) {
+# restore -o fn
+push @cflags, '-o', $output_fn
+    if defined $output_fn;
+
+# special case for -E
+if (grep { $_ eq '-E' } @cflags) {
     open $fh, '<', $tempfn
         or die "failed to open file:$tempfn:$!";
     while (<$fh>) {
@@ -46,7 +62,7 @@ if (grep { $_ eq '-E' } @ARGV) {
 }
 
 # invoke cc
-system($cc, @ARGV, $tempfn)
+system($cc, @cflags, $tempfn)
     or delegate_exit_status("$cc", $?);
 
 exit 0;
