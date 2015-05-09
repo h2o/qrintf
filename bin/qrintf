@@ -1,0 +1,77 @@
+#! /usr/bin/perl
+
+use strict;
+use warnings;
+use File::Basename qw(basename dirname);
+use File::Temp qw(tempdir);
+use POSIX qw(WIFEXITED WEXITSTATUS WTERMSIG);
+
+if (@ARGV < 2 || grep { $_ =~ /^(-h|--help)$/s } @ARGV) {
+    print "Usage: $0 compiler [compiler-options...] filename\n";
+    exit 0;
+}
+
+my @cflags = @ARGV;
+my $cc = shift @cflags;
+my $output_fn;
+for (my $i = 0; $i < @cflags;) {
+    if ($i + 1 < @cflags && $cflags[$i] eq '-o') {
+        $output_fn = $cflags[$i + 1];
+        splice @cflags, $i, 2;
+    } else {
+        ++$i;
+    }
+}
+my $fn = pop @cflags;
+
+my $pwd = dirname($0);
+
+my $tempdir = tempdir(CLEANUP => 1);
+my $tempfn = basename($fn);
+$tempfn =~ s{\.c(.*)$}{.i@{[$1 ? 'i' : '']}}s
+    or $tempfn = "$tempfn.i";
+$tempfn = "$tempdir/$tempfn";
+
+# invoke cpp
+open(my $fh, "-|", $cc, '-E', (grep { $_ ne '-c' } @cflags), '-DQRINTF=1', '-include', "$pwd/../share/qrintf/qrintf.h", $fn)
+    or die "failed to invoke $cc -E:$!";
+my $src = do { local $/; <$fh> };
+close $fh
+    or delegate_exit_status("$cc -E", $?);
+
+# apply qrintf-pp
+open $fh, "|-", "$pwd/qrintf-pp > $tempfn"
+    or die "failed to invoke $pwd/qrintf-pp:$!";
+print $fh $src;
+close $fh
+    or delegate_exit_status("$pwd/qrintf-pp", $?);
+
+# restore -o fn
+push @cflags, '-o', $output_fn
+    if defined $output_fn;
+
+# special case for -E
+if (grep { $_ eq '-E' } @cflags) {
+    open $fh, '<', $tempfn
+        or die "failed to open file:$tempfn:$!";
+    while (<$fh>) {
+        print $_;
+    }
+    close $fh;
+    exit 0;
+}
+
+# invoke cc
+system($cc, @cflags, $tempfn)
+    or delegate_exit_status("$cc", $?);
+
+exit 0;
+
+sub delegate_exit_status {
+    my ($prog, $status) = @_;
+    if (WIFEXITED($status)) {
+        exit WEXITSTATUS($status);
+    } else {
+        die "$prog exitted due to signal @{[WTERMSIG($status)]}\n";
+    }
+}

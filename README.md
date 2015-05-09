@@ -39,13 +39,11 @@ make install PREFIX=/usr/local
 COMMANDS
 ---
 
-### qrintf-gcc
+### qrintf
 
-`qrintf-gcc` is the wrapper command for GCC.
+`qrintf` is the command that wraps the C compiler (GCC or clang).
 
-It preprocesses the source files using GCC, applies `qrintf-pp`, and compiles the output using GCC.
-
-The command accepts all options that are known by GCC (with the exception of `-no-intgrated-cpp` and `-wrapper`, which are used internally by the command).
+It preprocesses the source files using the preprocessor (by calling the compiler with `-E` option), applies `qrintf-pp`, and then once again invokes the compiler to compile the processed file.
 
 ### qrintf-pp
 
@@ -82,10 +80,9 @@ note: Invocations of sprintf using other conversion specifiers are left as is.
 __Q. How do I run the tests?__
 
 ```
-make test
+make test CC=gcc
+make test CC=clang
 ```
-
-note: The test invokes `qrintf-gcc` which in turn invokes `gcc`.  So GCC should exist within the PATH.  `Clang-gcc` is not supported.
 
 __Q. Shouldn't such feature be implemented in the compiler?__
 

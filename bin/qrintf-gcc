@@ -1,3 +1,0 @@
-#! /bin/sh
-
-exec gcc -no-integrated-cpp -wrapper $0-wrapper "$@"
