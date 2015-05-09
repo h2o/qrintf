@@ -11,67 +11,66 @@ if (@ARGV < 2 || grep { $_ =~ /^(-h|--help)$/s } @ARGV) {
     exit 0;
 }
 
-my @cflags = @ARGV;
-my $cc = shift @cflags;
-my $output_fn;
-for (my $i = 0; $i < @cflags;) {
-    if ($i + 1 < @cflags && $cflags[$i] eq '-o') {
-        $output_fn = $cflags[$i + 1];
-        splice @cflags, $i, 2;
-    } else {
-        ++$i;
-    }
-}
-my $fn = pop @cflags;
-
 my $pwd = dirname($0);
 
-my $tempdir = tempdir(CLEANUP => 1);
-my $tempfn = basename($fn);
-$tempfn =~ s{\.c(.*)$}{.i@{[$1 ? 'i' : '']}}s
-    or $tempfn = "$tempfn.i";
-$tempfn = "$tempdir/$tempfn";
+my $cc = shift @ARGV;
 
-# invoke cpp
-open(my $fh, "-|", $cc, '-E', (grep { $_ ne '-c' } @cflags), '-DQRINTF=1', '-include', "$pwd/../include/qrintf.h", $fn)
-    or die "failed to invoke $cc -E:$!";
-my $src = do { local $/; <$fh> };
-close $fh
-    or delegate_exit_status("$cc -E", $?);
+if (basename($cc) =~ m{g(?:cc|\+\+)}) {
+    # is GCC, use "-wrapper"
+    exec "$cc", qw(-no-integrated-cpp -wrapper), "$pwd/../share/qrintf/gcc-wrapper", @ARGV;
+    die "failed to exec $cc:$!";
+} else {
+    # mimic GCC's "-no-integrated-cpp -wrapper"
 
-# apply qrintf-pp
-open $fh, "|-", "$pwd/qrintf-pp > $tempfn"
-    or die "failed to invoke $pwd/qrintf-pp:$!";
-print $fh $src;
-close $fh
-    or delegate_exit_status("$pwd/qrintf-pp", $?);
-
-# restore -o fn
-push @cflags, '-o', $output_fn
-    if defined $output_fn;
-
-# special case for -E
-if (grep { $_ eq '-E' } @cflags) {
-    open $fh, '<', $tempfn
-        or die "failed to open file:$tempfn:$!";
-    while (<$fh>) {
-        print $_;
+    # splice "-o fn" from ARGV
+    my $output_fn;
+    for (my $i = 0; $i < @ARGV;) {
+        if ($i + 1 < @ARGV && $ARGV[$i] eq '-o') {
+            $output_fn = $ARGV[$i + 1];
+            splice @ARGV, $i, 2;
+        } else {
+            ++$i;
+        }
     }
-    close $fh;
+    # and take the last argument as the source fn
+    my $fn = pop @ARGV;
+
+    # create temporary directory
+    my $tempdir = tempdir(CLEANUP => 1);
+    my $tempfn = basename($fn);
+    $tempfn =~ s{\.c(.*)$}{.i@{[$1 ? 'i' : '']}}s
+        or $tempfn = "$tempfn.i";
+    $tempfn = "$tempdir/$tempfn";
+
+    # invoke cpp
+    run_cmd(
+        "$pwd/../share/qrintf/gcc-wrapper",
+        $cc, '-E',
+        (grep { $_ ne '-c' } @ARGV),
+        $fn,
+        '-o', $tempfn,
+    );
+
+    exit 0
+        if grep { $_ eq '-E' } @ARGV;
+
+    # invoke cc
+    push @ARGV, $tempfn;
+    push @ARGV, '-o', $output_fn
+        if defined $output_fn;
+    run_cmd($cc, @ARGV);
+
     exit 0;
 }
 
-# invoke cc
-system($cc, @cflags, $tempfn)
-    or delegate_exit_status("$cc", $?);
-
-exit 0;
-
-sub delegate_exit_status {
-    my ($prog, $status) = @_;
-    if (WIFEXITED($status)) {
-        exit WEXITSTATUS($status);
+sub run_cmd {
+    my (@argv) = @_;
+    system(@argv) == 0 and return;
+    if ($? == -1) {
+        die "failed to exec $argv[0]:$!";
+    } elsif (WIFEXITED($?)) {
+        exit WEXITSTATUS($?);
     } else {
-        die "$prog exitted due to signal @{[WTERMSIG($status)]}\n";
+        die "$argv[0] exitted due to signal @{[WTERMSIG($?)]}\n";
     }
 }
