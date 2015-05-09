@@ -15,12 +15,16 @@ my $pwd = dirname($0);
 
 my $cc = shift @ARGV;
 
-if (basename($cc) =~ m{g(?:cc|\+\+)}) {
+if (basename($cc) =~ m{^g(?:cc|\+\+)}) {
     # is GCC, use "-wrapper"
     exec "$cc", qw(-no-integrated-cpp -wrapper), "$pwd/../share/qrintf/gcc-wrapper", @ARGV;
     die "failed to exec $cc:$!";
 } else {
     # mimic GCC's "-no-integrated-cpp -wrapper"
+
+    # suppress warnings like: `argument unused during compilation: '-I include'`
+    unshift @ARGV, "-Qunused-arguments"
+        if basename($cc) =~ m{^clang};
 
     # splice "-o fn" from ARGV
     my $output_fn;
