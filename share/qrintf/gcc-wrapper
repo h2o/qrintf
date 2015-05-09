@@ -3,6 +3,7 @@
 use strict;
 use warnings;
 use File::Basename qw(dirname);
+use POSIX qw(WIFEXITED WEXITSTATUS);
 
 if (! grep { $_ eq '-E' } @ARGV) {
     exec @ARGV;
@@ -14,7 +15,7 @@ my $pwd = dirname($0);
 # invoke cpp
 my ($cpp_cmd, @cpp_args) = @ARGV;
 system($cpp_cmd, '-DQRINTF=1', '-include', "$pwd/../../include/qrintf.h", @cpp_args) == 0
-    or exit $?;
+    or exit(WIFEXITED($?) ? WEXITSTATUS($?) : 1);
 
 # read the source file
 my $src_fn = $ARGV[$#ARGV];
@@ -27,7 +28,5 @@ my $src = do {
 open my $fh, "| $pwd/../../bin/qrintf-pp > $src_fn"
     or die "failed to invoke $pwd/qrintf-pp:$!";
 print $fh $src;
-close $fh;
-
-exit $?;
-
+close $fh
+    or exit(WIFEXITED($?) ? WEXITSTATUS($?) : 1);
