@@ -33,7 +33,7 @@ $tempfn =~ s{\.c(.*)$}{.i@{[$1 ? 'i' : '']}}s
 $tempfn = "$tempdir/$tempfn";
 
 # invoke cpp
-open(my $fh, "-|", $cc, '-E', (grep { $_ ne '-c' } @cflags), '-DQRINTF=1', '-include', "$pwd/../share/qrintf/qrintf.h", $fn)
+open(my $fh, "-|", $cc, '-E', (grep { $_ ne '-c' } @cflags), '-DQRINTF=1', '-include', "$pwd/../include/qrintf.h", $fn)
     or die "failed to invoke $cc -E:$!";
 my $src = do { local $/; <$fh> };
 close $fh
