@@ -76,9 +76,12 @@ void test_simple()
     CHECK("%3s", "abcde");
     CHECK("%03s", "abc");
     CHECK("%03s", "abcde");
-    CHECK("%*s", (size_t)3, "a");
+    CHECK("%*s", (size_t)3, "ab");
     CHECK("%*s", (size_t)3, "abc");
-    CHECK("%*s", (size_t)3, "abcde");
+    CHECK("%*s", (size_t)3, "abcd");
+    CHECK("%.*s", 3, "ab");
+    CHECK("%.*s", 3, "abc");
+    CHECK("%.*s", 3, "abcd");
     CHECK("%x_", 1);
     CHECK("%d%%", 10);
     CHECK("%%%d", 10);

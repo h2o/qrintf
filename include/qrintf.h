@@ -197,6 +197,21 @@ static inline qrintf_chk_t _qrintf_chk_width_s(qrintf_chk_t ctx, int fill_ch, in
     return _qrintf_chk_s_len(ctx, s, slen);
 }
 
+static inline qrintf_nck_t _qrintf_nck_maxwidth_s(qrintf_nck_t ctx, int maxwidth, const char *s)
+{
+    for (; maxwidth != 0 && *s != '\0'; --maxwidth, ++s)
+        ctx.str[ctx.off++] = *s;
+    return ctx;
+}
+
+static inline qrintf_chk_t _qrintf_chk_maxwidth_s(qrintf_chk_t ctx, int maxwidth, const char *s)
+{
+    size_t len = 0;
+    for (; maxwidth != 0 && s[len] != '\0'; --maxwidth, ++len)
+        ;
+    return _qrintf_chk_s_len(ctx, s, len);
+}
+
 static inline const char *_qrintf_get_digit_table(void)
 {
     static const char digits_table[] = {

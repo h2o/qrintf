@@ -106,8 +106,12 @@ sub rewrite {
     # build the expr
     my $expr = "_qrintf_${check}_init($dst)$space_after_dst$space_before_fmt";
     my $literal = '';
-    for my $token (split /(%(?:%|-?0?(?:[0-9]+|\*|)(?:(?:h||l|ll|z)[uxX]|(?:h||l|ll)[di]|s|c)))/, $fmt) {
-        if ($token =~ /^%(-?)(0?)([0-9]+|\*|)((?:h||l|ll|z)[uxX]|(?:h||l|ll)[di]|s|c)$/) {
+    for my $token (split /(%(?:%|-?0?(?:[0-9]+|\*|)(?:(?:h||l|ll|z)[uxX]|(?:h||l|ll)[di]|s|c)|\.\*s))/, $fmt) {
+        if ($token =~ /^%\.\*s$/) {
+            $expr = _append_literal($check, $expr, $literal);
+            $literal = '';
+            $expr = "_qrintf_${check}_maxwidth_s($expr" . shift(@values) . shift(@values) . ")";
+        } elsif ($token =~ /^%(-?)(0?)([0-9]+|\*|)((?:h||l|ll|z)[uxX]|(?:h||l|ll)[di]|s|c)$/) {
             my ($left_adjust, $zero_pad, $width, $conv) = ($1, $2, $3, $4);
             my $extra = '';
             $expr = _append_literal($check, $expr, $literal);
