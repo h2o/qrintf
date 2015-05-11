@@ -34,7 +34,10 @@ my %EXT = (
     (map { $_ => 'ii' } qw(cc cp cxx cpp CPP c++ C)),
 );
 
-if (@ARGV < 2 || grep { $_ =~ /^(-h|--help)$/s } @ARGV) {
+if (@ARGV && $ARGV[0] eq '--version') {
+    print "v0.9.2\n";
+    exit 0;
+} elsif (@ARGV < 2 || grep { $_ =~ /^(-h|--help)$/s } @ARGV) {
     print "Usage: $0 compiler [compiler-options...] filename\n";
     exit 0;
 }
