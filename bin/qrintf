@@ -2,9 +2,17 @@
 
 use strict;
 use warnings;
+use Digest::SHA qw(sha1_hex);
 use File::Basename qw(basename dirname);
 use File::Temp qw(tempdir);
 use POSIX qw(WIFEXITED WEXITSTATUS WTERMSIG);
+
+my %EXT = (
+    c  => 'i',
+    m  => 'mi',
+    (map { $_ => 'mii' } qw(mm M)),
+    (map { $_ => 'ii' } qw(cc cp cxx cpp CPP c++ C)),
+);
 
 if (@ARGV < 2 || grep { $_ =~ /^(-h|--help)$/s } @ARGV) {
     print "Usage: $0 compiler [compiler-options...] filename\n";
@@ -22,6 +30,9 @@ if (basename($cc) =~ m{^g(?:cc|\+\+)}) {
 } else {
     # mimic GCC's "-no-integrated-cpp -wrapper"
 
+    # create temporary directory
+    my $tempdir = tempdir(CLEANUP => 1);
+
     # suppress warnings like: `argument unused during compilation: '-I include'`
     unshift @ARGV, "-Qunused-arguments"
         if basename($cc) =~ m{^clang};
@@ -36,30 +47,36 @@ if (basename($cc) =~ m{^g(?:cc|\+\+)}) {
             ++$i;
         }
     }
-    # and take the last argument as the source fn
-    my $fn = pop @ARGV;
 
-    # create temporary directory
-    my $tempdir = tempdir(CLEANUP => 1);
-    my $tempfn = basename($fn);
-    $tempfn =~ s{\.c(.*)$}{.i@{[$1 ? 'i' : '']}}s
-        or $tempfn = "$tempfn.i";
-    $tempfn = "$tempdir/$tempfn";
+    # splice the filenames from ARGV
+    my @files;
+    for (my $i = 0; $i < @ARGV;) {
+        if ($ARGV[$i] !~ /^-/s                 # does not start with '-'
+            && -e $ARGV[$i]                    # is a file
+            && get_preprocessed_fn($ARGV[$i])  # is a file that is recognized as a source file
+        ) {
+            push @files, splice @ARGV, $i, 1;
+        } else {
+            ++$i;
+        }
+    }
 
-    # invoke cpp
-    run_cmd(
-        "$pwd/../share/qrintf/gcc-wrapper",
-        $cc, '-E',
-        (grep { $_ ne '-c' } @ARGV),
-        $fn,
-        '-o', $tempfn,
-    );
+    # preprocess the source files
+    for my $fn (@files) {
+        run_cmd(
+            "$pwd/../share/qrintf/gcc-wrapper",
+            $cc, '-E',
+            (grep { $_ ne '-c' } @ARGV),
+            $fn,
+            '-o', get_preprocessed_fn($fn),
+        );
+    }
 
     exit 0
         if grep { $_ eq '-E' } @ARGV;
 
     # invoke cc
-    push @ARGV, $tempfn;
+    push @ARGV, map { get_preprocessed_fn($_) } @files;
     push @ARGV, '-o', $output_fn
         if defined $output_fn;
     run_cmd($cc, @ARGV);
@@ -77,4 +94,14 @@ sub run_cmd {
     } else {
         die "$argv[0] exitted due to signal @{[WTERMSIG($?)]}\n";
     }
+}
+
+sub get_preprocessed_fn {
+    my $fn = shift;
+    $fn =~ /\.([^\.]+)$/s
+        or return;
+    my $ext = $1;
+    return
+        unless $EXT{$ext};
+    return substr(sha1_hex($fn), 0, 12) . ".$EXT{$ext}";
 }
