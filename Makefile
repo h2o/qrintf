@@ -11,7 +11,12 @@ install:
 	install -m 644 include/qrintf.h $(PREFIX)/include
 	install -m 755 share/qrintf/gcc-wrapper $(PREFIX)/share/qrintf
 
-test:
+test: test-cc test-cxx
+
+test-cc:
 	bin/qrintf $(CC) -D_QRINTF_COUNT_CALL=1 -Wall -g -Werror t/test.c -o ./test && ./test
 
-.PHONY: gen install test
+test-cxx:
+	bin/qrintf $(CXX) -x c++ -D_QRINTF_COUNT_CALL=1 -Wall -g -Werror t/test.c -o ./test && ./test
+
+.PHONY: gen install test test-cc test-cxx
