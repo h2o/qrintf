@@ -129,8 +129,8 @@ static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?><?= $width ?>_<?= $suf
 EOT
 }
 
-open my $fh, '>', 'share/qrintf/qrintf.h'
-    or die "failed to open share/qrintf/qrintf.h:$!";
+open my $fh, '>', 'include/qrintf.h'
+    or die "failed to open include/qrintf.h:$!";
 
 print $fh build_mt(template => << 'EOT', escape_func => undef)->(\&build_d, \&build_u, \&build_x)->as_string;
 ? my ($build_d, $build_u, $build_x) = @_;
@@ -156,8 +156,17 @@ print $fh build_mt(template => << 'EOT', escape_func => undef)->(\&build_d, \&bu
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
-#ifndef qrintf_h
-#define qrintf_h
+#if !defined(QRINTF_INCLUDE_COUNT)
+# define QRINTF_INCLUDE_COUNT 1
+#elif QRINTF_INCLUDE_COUNT==1
+# undef QRINTF_INCLUDE_COUNT
+# define QRINTF_INCLUDE_COUNT 2
+#elif QRINTF_INCLUDE_COUNT==2
+# undef QRINTF_INCLUDE_COUNT
+# define QRINTF_INCLUDE_COUNT 3
+#endif
+
+#if (!defined(QRINTF_NO_AUTO_INCLUDE) && QRINTF_INCLUDE_COUNT==1) || (defined(QRINTF_NO_AUTO_INCLUDE) && QRINTF_INCLUDE_COUNT==2)
 
 #ifdef __cplusplus
 extern "C" {
@@ -307,6 +316,21 @@ static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?>_width_s(qrintf_<?= $c
     return _qrintf_<?= $check ?>_s_len(ctx, s, slen);
 }
 ? }
+
+static inline qrintf_nck_t _qrintf_nck_maxwidth_s(qrintf_nck_t ctx, int maxwidth, const char *s)
+{
+    for (; maxwidth != 0 && *s != '\0'; --maxwidth, ++s)
+        ctx.str[ctx.off++] = *s;
+    return ctx;
+}
+
+static inline qrintf_chk_t _qrintf_chk_maxwidth_s(qrintf_chk_t ctx, int maxwidth, const char *s)
+{
+    size_t len = 0;
+    for (; maxwidth != 0 && s[len] != '\0'; --maxwidth, ++len)
+        ;
+    return _qrintf_chk_s_len(ctx, s, len);
+}
 
 static inline const char *_qrintf_get_digit_table(void)
 {
