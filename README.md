@@ -17,16 +17,16 @@ $ gcc -O2 examples/ipv4addr.c
 $ time ./a.out 1234567890
 result: 73.150.2.210
 
-real	0m2.602s
-user	0m2.598s
+real	0m2.514s
+user	0m2.503s
 sys	0m0.003s
 $ qrintf gcc -O2 examples/ipv4addr.c
 $ time ./a.out 1234567890
 result: 73.150.2.210
 
-real	0m0.196s
-user	0m0.192s
-sys	0m0.003s
+real	0m0.175s
+user	0m0.170s
+sys	0m0.002s
 ```
 
 INSTALL
