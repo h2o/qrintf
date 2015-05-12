@@ -27,7 +27,7 @@ use File::Basename qw(dirname);
 
 if (@ARGV && $ARGV[0] eq '--version') {
     my $cmd = dirname($0) . "/qrintf";
-    exec $cmd, "--version";
+    exec $^X, $cmd, "--version";
     die "failed to execute: $cmd:$!";
 }
 

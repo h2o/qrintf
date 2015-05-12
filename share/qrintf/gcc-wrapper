@@ -35,7 +35,7 @@ my $pwd = dirname($0);
 # invoke cpp
 my ($cpp_cmd, @cpp_args) = @ARGV;
 system($cpp_cmd, '-DQRINTF=1', '-include', "$pwd/../../include/qrintf.h", @cpp_args) == 0
-    or exit(WIFEXITED($?) ? WEXITSTATUS($?) : 1);
+    or exit($? >> 8 ? $? >> 8 : 1);
 
 # read the source file
 my $src_fn = $ARGV[$#ARGV];
@@ -45,8 +45,8 @@ my $src = do {
 };
 
 # filter and print
-open my $fh, "| $pwd/../../bin/qrintf-pp > $src_fn"
+open my $fh, "| $^X $pwd/../../bin/qrintf-pp > $src_fn"
     or die "failed to invoke $pwd/qrintf-pp:$!";
 print $fh $src;
 close $fh
-    or exit(WIFEXITED($?) ? WEXITSTATUS($?) : 1);
+    or exit($? >> 8 ? $? >> 8 : 1);
