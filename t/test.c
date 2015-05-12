@@ -91,6 +91,7 @@ void test_simple()
     CHECK("%s%d", "hi" /*hmm */, // test
         3);
     CHECK("%s%d", "a\",b", 123);
+    CHECK("%s", (1 ? "," : ""));
 
 #define CHECK_MULTI(type, conv, min, max) \
     CHECK(conv, (type)0); \
