@@ -1,4 +1,4 @@
-#! /usr/bin/perl
+#! /usr/bin/env perl
 
 # Copyright (c) 2014,2015 DeNA Co., Ltd., Masahiro, Ide, Kazuho Oku
 #
@@ -257,14 +257,14 @@ Exit:
     return ctx;
 }
 
-static inline qrintf_nck_t _qrintf_nck_fill(qrintf_nck_t ctx, int ch, size_t len, int width)
+static inline qrintf_nck_t _qrintf_nck_fill(qrintf_nck_t ctx, int ch, size_t len, size_t width)
 {
     for (; len < width; --width)
         ctx.str[ctx.off++] = ch;
     return ctx;
 }
 
-static inline qrintf_chk_t _qrintf_chk_fill(qrintf_chk_t ctx, int ch, size_t len, int width)
+static inline qrintf_chk_t _qrintf_chk_fill(qrintf_chk_t ctx, int ch, size_t len, size_t width)
 {
     if (len < width) {
         size_t off = ctx.off, l = width - len;
