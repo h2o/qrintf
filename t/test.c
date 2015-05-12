@@ -152,9 +152,20 @@ static void test_composite(void)
     CHECK("HTTP/1.1 %d %s", 200, "OK");
 }
 
+static void test_issue18(void)
+{
+    CHECK("%s", (1 ? "," : ""));
+}
+
+static void test_issues(void)
+{
+    subtest("issues/18", test_issue18);
+}
+
 int main(int argc, char **argv)
 {
-    subtest("test_simple", test_simple);
-    subtest("test_composite", test_composite);
+    subtest("simple", test_simple);
+    subtest("composite", test_composite);
+    subtest("issues", test_issues);
     return done_testing();
 }
