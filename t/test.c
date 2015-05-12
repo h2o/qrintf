@@ -32,12 +32,6 @@
 # define SIZE_MAX (std::numeric_limits<std::size_t>::max())
 #endif
 
-static void test_simple(void);
-static void test_composite(void);
-
-#define PICOTEST_FUNCS test_simple,test_composite
-#include "../deps/picotest/picotest.c"
-
 static int (*orig)(char *str, const char *fmt, ...) = sprintf;
 static int (*orign)(char *str, size_t n, const char *fmt, ...) = snprintf;
 
@@ -71,7 +65,7 @@ size_t _qrintf_call_cnt;
         CHECK_SNPRINTF(256, __VA_ARGS__); \
     } while (0)
 
-void test_simple()
+static void test_simple(void)
 {
     CHECK("%c", 'Z');
     CHECK("%3c", 'Z');
@@ -153,12 +147,13 @@ void test_simple()
     CHECK_SNPRINTF(3, "%llx", ULLONG_MAX);
 }
 
-void test_composite()
+static void test_composite(void)
 {
     CHECK("HTTP/1.1 %d %s", 200, "OK");
 }
 
-int main() {
+int main(int argc, char **argv)
+{
     subtest("test_simple", test_simple);
     subtest("test_composite", test_composite);
     return done_testing();

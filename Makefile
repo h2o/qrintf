@@ -1,4 +1,5 @@
 PREFIX=/usr/local
+TEST_CFLAGS=-D_QRINTF_COUNT_CALL=1 -Wall -g -Werror
 
 all:
 
@@ -14,9 +15,9 @@ install:
 test: test-cc test-cxx
 
 test-cc:
-	bin/qrintf $(CC) -D_QRINTF_COUNT_CALL=1 -Wall -g -Werror t/test.c -o ./test && ./test
+	bin/qrintf $(CC)  $(TEST_CFLAGS) t/test.c deps/picotest/picotest.c -o ./test && ./test
 
 test-cxx:
-	bin/qrintf $(CXX) -x c++ -D_QRINTF_COUNT_CALL=1 -Wall -g -Werror t/test.c -o ./test && ./test
+	bin/qrintf $(CXX) -x c++ $(TEST_CFLAGS) t/test.c deps/picotest/picotest.c -o ./test && ./test
 
 .PHONY: gen install test test-cc test-cxx
