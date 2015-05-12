@@ -27,6 +27,11 @@
 #include <string.h>
 #include "../deps/picotest/picotest.h"
 
+#if defined(__cplusplus) && !defined(SIZE_MAX)
+#include <limits>
+# define SIZE_MAX (std::numeric_limits<std::size_t>::max())
+#endif
+
 static void test_simple(void);
 static void test_composite(void);
 
@@ -151,4 +156,10 @@ void test_simple()
 void test_composite()
 {
     CHECK("HTTP/1.1 %d %s", 200, "OK");
+}
+
+int main() {
+    subtest("test_simple", test_simple);
+    subtest("test_composite", test_composite);
+    return done_testing();
 }
