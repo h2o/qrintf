@@ -112,19 +112,25 @@ static void test_simple(void)
     CHECK_MULTI(unsigned , "%u", 0, UINT_MAX);
     CHECK_MULTI(unsigned long, "%lu", 0, ULONG_MAX);
     CHECK_MULTI(unsigned long long, "%llu", 0, ULLONG_MAX);
+#ifndef _WIN32
     CHECK_MULTI(size_t, "%zu", 0, SIZE_MAX);
+#endif
 
     CHECK_MULTI(unsigned short, "%hx", 0, USHRT_MAX);
     CHECK_MULTI(unsigned , "%x", 0, UINT_MAX);
     CHECK_MULTI(unsigned long, "%lx", 0, ULONG_MAX);
     CHECK_MULTI(unsigned long long, "%llx", 0, ULLONG_MAX);
+#ifndef _WIN32
     CHECK_MULTI(size_t, "%zx", 0, SIZE_MAX);
+#endif
 
     CHECK_MULTI(unsigned short, "%hX", 0, USHRT_MAX);
     CHECK_MULTI(unsigned , "%X", 0, UINT_MAX);
     CHECK_MULTI(unsigned long, "%lX", 0, ULONG_MAX);
     CHECK_MULTI(unsigned long long, "%llX", 0, ULLONG_MAX);
+#ifndef _WIN32
     CHECK_MULTI(size_t, "%zX", 0, SIZE_MAX);
+#endif
 
     CHECK_MULTI(int, "%7d", INT_MIN, INT_MAX);
     CHECK_MULTI(int, "%07d", INT_MIN, INT_MAX);
@@ -133,6 +139,7 @@ static void test_simple(void)
     CHECK_MULTI(unsigned, "%7x", 0, UINT_MAX);
     CHECK_MULTI(unsigned, "%07x", 0, UINT_MAX);
 
+#ifndef _WIN32
     CHECK_SNPRINTF(8, "%s", "abcdef"); /* below the bounds */
     CHECK_SNPRINTF(8, "1234%s", "abcdef"); /* partial write */
     CHECK_SNPRINTF(8, "1234567890%s", "abcdef"); /* no write */
@@ -145,6 +152,7 @@ static void test_simple(void)
     CHECK_SNPRINTF(3, "%x",   UINT_MAX);
     CHECK_SNPRINTF(3, "%lx",  ULONG_MAX);
     CHECK_SNPRINTF(3, "%llx", ULLONG_MAX);
+#endif
 }
 
 static void test_composite(void)
