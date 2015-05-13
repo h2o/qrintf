@@ -25,8 +25,7 @@ use warnings;
 use Digest::SHA qw(sha1_hex);
 use File::Basename qw(basename dirname);
 use File::Temp qw(tempdir);
-use File::Spec qw(rel2abs);
-use POSIX qw(WIFEXITED WEXITSTATUS WTERMSIG);
+use File::Spec::Functions qw(rel2abs);
 
 my %EXT = (
     c  => 'i',
@@ -43,13 +42,13 @@ if (@ARGV && $ARGV[0] eq '--version') {
     exit 0;
 }
 
-my $pwd = dirname(File::Spec->rel2abs($0));
+my $pwd = dirname(rel2abs($0));
 
 my $cc = shift @ARGV;
 
 if (basename($cc) =~ m{^g(?:cc|\+\+)}) {
     # is GCC, use "-wrapper"
-    if (system("$cc", qw(-no-integrated-cpp -wrapper), "$pwd/../share/qrintf/gcc-wrapper", @ARGV)) {
+    if (system("$cc", qw(-no-integrated-cpp -wrapper), "$pwd/../share/qrintf/gcc-wrapper", @ARGV) != 0) {
         die "failed to exec $cc:$!";
     }
     exit 0;
