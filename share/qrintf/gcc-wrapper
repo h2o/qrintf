@@ -26,8 +26,10 @@ use File::Basename qw(dirname);
 use POSIX qw(WIFEXITED WEXITSTATUS);
 
 if (! grep { $_ eq '-E' } @ARGV) {
-    exec @ARGV;
-    die "failed to exec $ARGV[0]:$!";
+    if (system(@ARGV) != 0) {
+        die "failed to exec $ARGV[0]:$!";
+    }
+    exit 0;
 }
 
 my $pwd = dirname($0);
