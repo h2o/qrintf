@@ -2,7 +2,8 @@ PREFIX=/usr/local
 TEST_CFLAGS=-D_QRINTF_COUNT_CALL=1 -Wall -g -Werror
 AOUT=./test
 ifeq (Windows_NT, $(OS))
-AOUT=test.exe
+#AOUT=.\\\test.exe
+AOUT=".\test.exe"
 endif
 
 all:
@@ -19,7 +20,7 @@ install:
 test: test-cc test-cxx
 
 test-cc:
-	perl bin/qrintf $(CC)  $(TEST_CFLAGS) t/test.c deps/picotest/picotest.c -o $(AOUT) && $(AOUT)
+	perl bin/qrintf $(CC) $(TEST_CFLAGS) t/test.c deps/picotest/picotest.c -o $(AOUT) && $(AOUT)
 
 test-cxx:
 	perl bin/qrintf $(CXX) -x c++ $(TEST_CFLAGS) t/test.c deps/picotest/picotest.c -o $(AOUT) && $(AOUT)
