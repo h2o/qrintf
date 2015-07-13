@@ -62,6 +62,20 @@ if (basename($cc) =~ m{^g(?:cc|\+\+)}) {
 
     # splice "-o fn" from ARGV
     my $output_fn;
+    
+    # for autoconf(C89 comatibirity test) begin
+    for (my $i = 0; $i < @ARGV;) {
+        if ($i + 1 < @ARGV && $ARGV[$i] eq '-c') {
+            $output_fn = $ARGV[$i + 1];
+            $output_fn =~ s/\.c/\.o/;
+            #splice @ARGV, $i, 2;
+            ++$i;
+        } else {
+          ++$i;
+        }
+    }
+    # end
+    
     for (my $i = 0; $i < @ARGV;) {
         if ($i + 1 < @ARGV && $ARGV[$i] eq '-o') {
             $output_fn = $ARGV[$i + 1];
