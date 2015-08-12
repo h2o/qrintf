@@ -48,6 +48,10 @@ extern "C" {
 #undef snprintf
 #define snprintf(...) _qp_snprintf(__VA_ARGS__)
 
+#ifndef _QRINTF_COUNT_CALL
+#define _QRINTF_COUNT_CALL 0
+#endif
+
 #if _QRINTF_COUNT_CALL
 extern size_t _qrintf_call_cnt;
 #endif
