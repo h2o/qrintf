@@ -93,33 +93,38 @@ static void test_simple(void)
 
 #define CHECK_MULTI(type, conv, min, max) \
     CHECK(conv, (type)0); \
-    CHECK(conv, (type)12345); \
-    CHECK(conv, (type)-12345); \
+    CHECK(conv, (type)123); \
+    CHECK(conv, (type)-123); \
     CHECK(conv, (type)min); \
     CHECK(conv, (type)max);
 
+    CHECK_MULTI(char, "%hhd", CHAR_MIN, CHAR_MAX);
     CHECK_MULTI(short, "%hd", SHRT_MIN, SHRT_MAX);
     CHECK_MULTI(int, "%d", INT_MIN, INT_MAX);
     CHECK_MULTI(long, "%ld", LONG_MIN, LONG_MAX);
     CHECK_MULTI(long long, "%lld", LLONG_MIN, LLONG_MAX);
 
+    CHECK_MULTI(char, "%hhi", CHAR_MIN, CHAR_MAX);
     CHECK_MULTI(short, "%hi", SHRT_MIN, SHRT_MAX);
     CHECK_MULTI(int, "%i", INT_MIN, INT_MAX);
     CHECK_MULTI(long, "%li", LONG_MIN, LONG_MAX);
     CHECK_MULTI(long long, "%lli", LLONG_MIN, LLONG_MAX);
 
+    CHECK_MULTI(unsigned char, "%hhu", 0, UCHAR_MAX);
     CHECK_MULTI(unsigned short, "%hu", 0, USHRT_MAX);
     CHECK_MULTI(unsigned , "%u", 0, UINT_MAX);
     CHECK_MULTI(unsigned long, "%lu", 0, ULONG_MAX);
     CHECK_MULTI(unsigned long long, "%llu", 0, ULLONG_MAX);
     CHECK_MULTI(size_t, "%zu", 0, SIZE_MAX);
 
+    CHECK_MULTI(unsigned char, "%hhx", 0, UCHAR_MAX);
     CHECK_MULTI(unsigned short, "%hx", 0, USHRT_MAX);
     CHECK_MULTI(unsigned , "%x", 0, UINT_MAX);
     CHECK_MULTI(unsigned long, "%lx", 0, ULONG_MAX);
     CHECK_MULTI(unsigned long long, "%llx", 0, ULLONG_MAX);
     CHECK_MULTI(size_t, "%zx", 0, SIZE_MAX);
 
+    CHECK_MULTI(unsigned char, "%hhX", 0, UCHAR_MAX);
     CHECK_MULTI(unsigned short, "%hX", 0, USHRT_MAX);
     CHECK_MULTI(unsigned , "%X", 0, UINT_MAX);
     CHECK_MULTI(unsigned long, "%lX", 0, ULONG_MAX);
@@ -141,6 +146,7 @@ static void test_simple(void)
     CHECK_SNPRINTF(10, "%u.%u.%u.%u", 12, 34, 56, 78);
     CHECK_SNPRINTF(3, "%x", 0xffff);
 
+    CHECK_SNPRINTF(3, "%hhx", UCHAR_MAX);
     CHECK_SNPRINTF(3, "%hx",  USHRT_MAX);
     CHECK_SNPRINTF(3, "%x",   UINT_MAX);
     CHECK_SNPRINTF(3, "%lx",  ULONG_MAX);

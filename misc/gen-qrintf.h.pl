@@ -560,16 +560,19 @@ static inline qrintf_chk_t _qrintf_chk_long_long_core(qrintf_chk_t ctx, int fill
 }
 
 ? for my $check (qw(nck chk)) {
+<?= $build_d->($check, "char", "hhd") ?>
 <?= $build_d->($check, "short", "hd") ?>
 <?= $build_d->($check, "int", "d",) ?>
 <?= $build_d->($check, "long", "ld") ?>
 <?= $build_d->($check, "long long", "lld") ?>
+<?= $build_u->($check, "unsigned char", "hhu") ?>
 <?= $build_u->($check, "unsigned short", "hu") ?>
 <?= $build_u->($check, "unsigned", "u") ?>
 <?= $build_u->($check, "unsigned long", "lu") ?>
 <?= $build_u->($check, "unsigned long long", "llu") ?>
 <?= $build_u->($check, "size_t", "zu") ?>
 ?   for my $with_width (0..1) {
+<?= $build_x->($check, "unsigned char", "hhx", $with_width) ?>
 <?= $build_x->($check, "unsigned short", "hx", $with_width) ?>
 <?= $build_x->($check, "unsigned", "x", $with_width) ?>
 <?= $build_x->($check, "unsigned long", "lx", $with_width) ?>
