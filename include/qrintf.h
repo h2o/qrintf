@@ -443,6 +443,32 @@ static inline qrintf_chk_t _qrintf_chk_long_long_core(qrintf_chk_t ctx, int fill
     return ctx;
 }
 
+static inline qrintf_nck_t _qrintf_nck_hhd(qrintf_nck_t ctx, char v)
+{
+    unsigned char val = v >= 0 ? v : -(unsigned char)v;
+    int sign = v < 0;
+    if (sizeof(char) < sizeof(long long)) {
+        return _qrintf_nck_long_core(ctx, 0, 0, (unsigned long)val, sign);
+    }
+    else {
+        assert(sizeof(char) == sizeof(long long));
+        return _qrintf_nck_long_long_core(ctx, 0, 0, (unsigned long long)val, sign);
+    }
+}
+
+static inline qrintf_nck_t _qrintf_nck_width_hhd(qrintf_nck_t ctx, int fill_ch, int width, char v)
+{
+    unsigned char val = v >= 0 ? v : -(unsigned char)v;
+    int sign = v < 0;
+    if (sizeof(char) < sizeof(long long)) {
+        return _qrintf_nck_long_core(ctx, fill_ch, width, (unsigned long)val, sign);
+    }
+    else {
+        assert(sizeof(char) == sizeof(long long));
+        return _qrintf_nck_long_long_core(ctx, fill_ch, width, (unsigned long long)val, sign);
+    }
+}
+
 static inline qrintf_nck_t _qrintf_nck_hd(qrintf_nck_t ctx, short v)
 {
     unsigned short val = v >= 0 ? v : -(unsigned short)v;
@@ -544,6 +570,29 @@ static inline qrintf_nck_t _qrintf_nck_width_lld(qrintf_nck_t ctx, int fill_ch, 
     else {
         assert(sizeof(long long) == sizeof(long long));
         return _qrintf_nck_long_long_core(ctx, fill_ch, width, (unsigned long long)val, sign);
+    }
+}
+
+
+static inline qrintf_nck_t _qrintf_nck_hhu(qrintf_nck_t ctx, unsigned char v)
+{
+    if (sizeof(unsigned char) < sizeof(long long)) {
+        return _qrintf_nck_long_core(ctx, 0, 0, (unsigned long)v, 0);
+    }
+    else {
+        assert(sizeof(unsigned char) == sizeof(long long));
+        return _qrintf_nck_long_long_core(ctx, 0, 0, (unsigned long long)v, 0);
+    }
+}
+
+static inline qrintf_nck_t _qrintf_nck_width_hhu(qrintf_nck_t ctx, int fill_ch, int width, unsigned char v)
+{
+    if (sizeof(unsigned char) < sizeof(long long)) {
+        return _qrintf_nck_long_core(ctx, fill_ch, width, (unsigned long)v, 0);
+    }
+    else {
+        assert(sizeof(unsigned char) == sizeof(long long));
+        return _qrintf_nck_long_long_core(ctx, 0, 0, (unsigned long long)v, 0);
     }
 }
 
@@ -662,6 +711,29 @@ static inline qrintf_nck_t _qrintf_nck_width_zu(qrintf_nck_t ctx, int fill_ch, i
     }
 }
 
+static inline qrintf_nck_t _qrintf_nck_hhx(qrintf_nck_t ctx, unsigned char v, const char *chars)
+{
+    size_t len;
+    if (v != 0) {
+        int bits;
+        if (sizeof(unsigned char) == sizeof(unsigned long long))
+            bits = sizeof(unsigned long long) * 8 - __builtin_clzll(v);
+        else if (sizeof(unsigned char) == sizeof(unsigned long))
+            bits = sizeof(unsigned long) * 8 - __builtin_clzl(v);
+        else
+            bits = sizeof(int) * 8 - __builtin_clz(v);
+        len = (bits + 3) >> 2;
+    } else {
+        len = 1;
+    }
+    len *= 4;
+    do {
+        len -= 4;
+        ctx.str[ctx.off++] = chars[(v >> len) & 0xf];
+    } while (len != 0);
+    return ctx;
+}
+
 static inline qrintf_nck_t _qrintf_nck_hx(qrintf_nck_t ctx, unsigned short v, const char *chars)
 {
     size_t len;
@@ -769,6 +841,30 @@ static inline qrintf_nck_t _qrintf_nck_zx(qrintf_nck_t ctx, size_t v, const char
     } else {
         len = 1;
     }
+    len *= 4;
+    do {
+        len -= 4;
+        ctx.str[ctx.off++] = chars[(v >> len) & 0xf];
+    } while (len != 0);
+    return ctx;
+}
+
+static inline qrintf_nck_t _qrintf_nck_width_hhx(qrintf_nck_t ctx, int fill_ch, int width, unsigned char v, const char *chars)
+{
+    size_t len;
+    if (v != 0) {
+        int bits;
+        if (sizeof(unsigned char) == sizeof(unsigned long long))
+            bits = sizeof(unsigned long long) * 8 - __builtin_clzll(v);
+        else if (sizeof(unsigned char) == sizeof(unsigned long))
+            bits = sizeof(unsigned long) * 8 - __builtin_clzl(v);
+        else
+            bits = sizeof(int) * 8 - __builtin_clz(v);
+        len = (bits + 3) >> 2;
+    } else {
+        len = 1;
+    }
+    ctx = _qrintf_nck_fill(ctx, fill_ch, len, width);
     len *= 4;
     do {
         len -= 4;
@@ -897,6 +993,32 @@ static inline qrintf_nck_t _qrintf_nck_width_zx(qrintf_nck_t ctx, int fill_ch, i
     return ctx;
 }
 
+static inline qrintf_chk_t _qrintf_chk_hhd(qrintf_chk_t ctx, char v)
+{
+    unsigned char val = v >= 0 ? v : -(unsigned char)v;
+    int sign = v < 0;
+    if (sizeof(char) < sizeof(long long)) {
+        return _qrintf_chk_long_core(ctx, 0, 0, (unsigned long)val, sign);
+    }
+    else {
+        assert(sizeof(char) == sizeof(long long));
+        return _qrintf_chk_long_long_core(ctx, 0, 0, (unsigned long long)val, sign);
+    }
+}
+
+static inline qrintf_chk_t _qrintf_chk_width_hhd(qrintf_chk_t ctx, int fill_ch, int width, char v)
+{
+    unsigned char val = v >= 0 ? v : -(unsigned char)v;
+    int sign = v < 0;
+    if (sizeof(char) < sizeof(long long)) {
+        return _qrintf_chk_long_core(ctx, fill_ch, width, (unsigned long)val, sign);
+    }
+    else {
+        assert(sizeof(char) == sizeof(long long));
+        return _qrintf_chk_long_long_core(ctx, fill_ch, width, (unsigned long long)val, sign);
+    }
+}
+
 static inline qrintf_chk_t _qrintf_chk_hd(qrintf_chk_t ctx, short v)
 {
     unsigned short val = v >= 0 ? v : -(unsigned short)v;
@@ -998,6 +1120,29 @@ static inline qrintf_chk_t _qrintf_chk_width_lld(qrintf_chk_t ctx, int fill_ch, 
     else {
         assert(sizeof(long long) == sizeof(long long));
         return _qrintf_chk_long_long_core(ctx, fill_ch, width, (unsigned long long)val, sign);
+    }
+}
+
+
+static inline qrintf_chk_t _qrintf_chk_hhu(qrintf_chk_t ctx, unsigned char v)
+{
+    if (sizeof(unsigned char) < sizeof(long long)) {
+        return _qrintf_chk_long_core(ctx, 0, 0, (unsigned long)v, 0);
+    }
+    else {
+        assert(sizeof(unsigned char) == sizeof(long long));
+        return _qrintf_chk_long_long_core(ctx, 0, 0, (unsigned long long)v, 0);
+    }
+}
+
+static inline qrintf_chk_t _qrintf_chk_width_hhu(qrintf_chk_t ctx, int fill_ch, int width, unsigned char v)
+{
+    if (sizeof(unsigned char) < sizeof(long long)) {
+        return _qrintf_chk_long_core(ctx, fill_ch, width, (unsigned long)v, 0);
+    }
+    else {
+        assert(sizeof(unsigned char) == sizeof(long long));
+        return _qrintf_chk_long_long_core(ctx, 0, 0, (unsigned long long)v, 0);
     }
 }
 
@@ -1114,6 +1259,36 @@ static inline qrintf_chk_t _qrintf_chk_width_zu(qrintf_chk_t ctx, int fill_ch, i
         assert(sizeof(size_t) == sizeof(long long));
         return _qrintf_chk_long_long_core(ctx, 0, 0, (unsigned long long)v, 0);
     }
+}
+
+static inline qrintf_chk_t _qrintf_chk_hhx(qrintf_chk_t ctx, unsigned char v, const char *chars)
+{
+    size_t len;
+    size_t rest = 0;
+    if (v != 0) {
+        int bits;
+        if (sizeof(unsigned char) == sizeof(unsigned long long))
+            bits = sizeof(unsigned long long) * 8 - __builtin_clzll(v);
+        else if (sizeof(unsigned char) == sizeof(unsigned long))
+            bits = sizeof(unsigned long) * 8 - __builtin_clzl(v);
+        else
+            bits = sizeof(int) * 8 - __builtin_clz(v);
+        len = (bits + 3) >> 2;
+    } else {
+        len = 1;
+    }
+    if (ctx.off + len > ctx.size) {
+        rest = ctx.off + len - ctx.size;
+        len -= rest;
+        v >>= rest * 4;
+    }
+    len *= 4;
+    do {
+        len -= 4;
+        ctx.str[ctx.off++] = chars[(v >> len) & 0xf];
+    } while (len != 0);
+    ctx.off += rest;
+    return ctx;
 }
 
 static inline qrintf_chk_t _qrintf_chk_hx(qrintf_chk_t ctx, unsigned short v, const char *chars)
@@ -1252,6 +1427,37 @@ static inline qrintf_chk_t _qrintf_chk_zx(qrintf_chk_t ctx, size_t v, const char
     } else {
         len = 1;
     }
+    if (ctx.off + len > ctx.size) {
+        rest = ctx.off + len - ctx.size;
+        len -= rest;
+        v >>= rest * 4;
+    }
+    len *= 4;
+    do {
+        len -= 4;
+        ctx.str[ctx.off++] = chars[(v >> len) & 0xf];
+    } while (len != 0);
+    ctx.off += rest;
+    return ctx;
+}
+
+static inline qrintf_chk_t _qrintf_chk_width_hhx(qrintf_chk_t ctx, int fill_ch, int width, unsigned char v, const char *chars)
+{
+    size_t len;
+    size_t rest = 0;
+    if (v != 0) {
+        int bits;
+        if (sizeof(unsigned char) == sizeof(unsigned long long))
+            bits = sizeof(unsigned long long) * 8 - __builtin_clzll(v);
+        else if (sizeof(unsigned char) == sizeof(unsigned long))
+            bits = sizeof(unsigned long) * 8 - __builtin_clzl(v);
+        else
+            bits = sizeof(int) * 8 - __builtin_clz(v);
+        len = (bits + 3) >> 2;
+    } else {
+        len = 1;
+    }
+    ctx = _qrintf_chk_fill(ctx, fill_ch, len, width);
     if (ctx.off + len > ctx.size) {
         rest = ctx.off + len - ctx.size;
         len -= rest;
