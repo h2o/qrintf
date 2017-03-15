@@ -45,8 +45,10 @@ extern "C" {
 
 #undef sprintf
 #define sprintf(...) _qp_sprintf(__VA_ARGS__)
-#undef snprintf
-#define snprintf(...) _qp_snprintf(__VA_ARGS__)
+#ifndef _WIN32
+# undef snprintf
+# define snprintf(...) _qp_snprintf(__VA_ARGS__)
+#endif
 
 #ifndef _QRINTF_COUNT_CALL
 #define _QRINTF_COUNT_CALL 0

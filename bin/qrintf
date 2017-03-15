@@ -25,7 +25,7 @@ use warnings;
 use Digest::SHA qw(sha1_hex);
 use File::Basename qw(basename dirname);
 use File::Temp qw(tempdir);
-use POSIX qw(WIFEXITED WEXITSTATUS WTERMSIG);
+use File::Spec::Functions qw(rel2abs);
 
 my %EXT = (
     c  => 'i',
@@ -42,14 +42,16 @@ if (@ARGV && $ARGV[0] eq '--version') {
     exit 0;
 }
 
-my $pwd = dirname($0);
+my $pwd = dirname(rel2abs($0));
 
 my $cc = shift @ARGV;
 
 if (basename($cc) =~ m{^g(?:cc|\+\+)}) {
     # is GCC, use "-wrapper"
-    exec "$cc", qw(-no-integrated-cpp -wrapper), "$pwd/../share/qrintf/gcc-wrapper", @ARGV;
-    die "failed to exec $cc:$!";
+    if (system("$cc", qw(-no-integrated-cpp -wrapper), "$pwd/../share/qrintf/gcc-wrapper", @ARGV) != 0) {
+        die "failed to exec $cc:$!";
+    }
+    exit 0;
 } else {
     # mimic GCC's "-no-integrated-cpp -wrapper"
 
@@ -87,6 +89,7 @@ if (basename($cc) =~ m{^g(?:cc|\+\+)}) {
     # preprocess the source files
     for my $fn (@files) {
         run_cmd(
+            $^X,
             "$pwd/../share/qrintf/gcc-wrapper",
             $cc, '-E',
             (grep { $_ ne '-c' } @ARGV),
@@ -112,10 +115,10 @@ sub run_cmd {
     system(@argv) == 0 and return;
     if ($? == -1) {
         die "failed to exec $argv[0]:$!";
-    } elsif (WIFEXITED($?)) {
-        exit WEXITSTATUS($?);
+    } elsif ($? & 255) {
+        exit $? >> 8;
     } else {
-        die "$argv[0] exitted due to signal @{[WTERMSIG($?)]}\n";
+        die "$argv[0] exitted due to signal @{[$? & 255]}\n";
     }
 }
 
