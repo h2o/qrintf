@@ -62,22 +62,31 @@ if (basename($cc) =~ m{^g(?:cc|\+\+)}) {
 
     # splice "-o fn" from ARGV
     my $output_fn;
+    my $coption;
+
     for (my $i = 0; $i < @ARGV;) {
         if ($i + 1 < @ARGV && $ARGV[$i] eq '-o') {
             $output_fn = $ARGV[$i + 1];
             splice @ARGV, $i, 2;
         } else {
+            if ($i < @ARGV && $ARGV[$i] eq '-c') {
+                $coption = 1;
+            }
             ++$i;
         }
     }
 
     # splice the filenames from ARGV
     my @files;
+    my %tmp_fn_to_obj_fn;
+
     for (my $i = 0; $i < @ARGV;) {
         if ($ARGV[$i] !~ /^-/s                 # does not start with '-'
             && -e $ARGV[$i]                    # is a file
             && get_preprocessed_fn($ARGV[$i])  # is a file that is recognized as a source file
         ) {
+            $tmp_fn_to_obj_fn{$ARGV[$i]} = get_preprocessed_fn($ARGV[$i])
+              if !defined $output_fn && defined $coption;
             push @files, splice @ARGV, $i, 1;
         } else {
             ++$i;
@@ -103,6 +112,17 @@ if (basename($cc) =~ m{^g(?:cc|\+\+)}) {
     push @ARGV, '-o', $output_fn
         if defined $output_fn;
     run_cmd($cc, @ARGV);
+    #print $output_fn, $coption;
+    if(!defined $output_fn && defined $coption) {
+        while (my ($key, $value) = each(%tmp_fn_to_obj_fn)){
+            $key =~ /\.([^\.]+)$/s;
+            my $dest_fn = $`;
+            $value =~ /\.([^\.]+)$/s;
+            my $src_fn = $`;
+            run_cmd("mv", "$src_fn.o", "$dest_fn.o");
+            run_cmd("rm", $value);
+        }
+    }
 
     exit 0;
 }
