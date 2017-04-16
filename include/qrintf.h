@@ -125,14 +125,14 @@ Exit:
     return ctx;
 }
 
-static inline qrintf_nck_t _qrintf_nck_fill(qrintf_nck_t ctx, int ch, size_t len, int width)
+static inline qrintf_nck_t _qrintf_nck_fill(qrintf_nck_t ctx, int ch, size_t len, size_t width)
 {
     for (; len < (size_t)width; --width)
         ctx.str[ctx.off++] = ch;
     return ctx;
 }
 
-static inline qrintf_chk_t _qrintf_chk_fill(qrintf_chk_t ctx, int ch, size_t len, int width)
+static inline qrintf_chk_t _qrintf_chk_fill(qrintf_chk_t ctx, int ch, size_t len, size_t width)
 {
     if (len < (size_t)width) {
         size_t off = ctx.off, l = (size_t)width - len;
