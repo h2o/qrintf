@@ -62,11 +62,16 @@ if (basename($cc) =~ m{^g(?:cc|\+\+)}) {
 
     # splice "-o fn" from ARGV
     my $output_fn;
+    my $coption;
+
     for (my $i = 0; $i < @ARGV;) {
         if ($i + 1 < @ARGV && $ARGV[$i] eq '-o') {
             $output_fn = $ARGV[$i + 1];
             splice @ARGV, $i, 2;
         } else {
+	    if ($i + 1 < @ARGV && $ARGV[$i] eq '-c') {
+		$coption = 1;
+            }
             ++$i;
         }
     }
@@ -78,6 +83,10 @@ if (basename($cc) =~ m{^g(?:cc|\+\+)}) {
             && -e $ARGV[$i]                    # is a file
             && get_preprocessed_fn($ARGV[$i])  # is a file that is recognized as a source file
         ) {
+	    if($ARGV[$i] =~ /\.c$/ &&  !defined $output_fn && defined $coption) {
+		$output_fn = $ARGV[$i];
+		$output_fn =~ s/\.c$/\.o/;
+	    }
             push @files, splice @ARGV, $i, 1;
         } else {
             ++$i;
