@@ -27,9 +27,11 @@ use Text::MicroTemplate qw(build_mt);
 sub build_d {
     return build_mt(template => << 'EOT', escape_func => undef)->(@_);
 ? my ($check, $type, $suffix) = @_;
+? my $unsigned_type = $type;
+? $unsigned_type =~ s/^(signed )?/unsigned /g;
 static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?>_<?= $suffix ?>(qrintf_<?= $check ?>_t ctx, <?= $type ?> v)
 {
-    unsigned <?= $type ?> val = v >= 0 ? v : -(unsigned <?= $type ?>)v;
+    <?= $unsigned_type ?> val = v >= 0 ? v : -(<?= $unsigned_type ?>)v;
     int sign = v < 0;
     if (sizeof(<?= $type ?>) < sizeof(long long)) {
         return _qrintf_<?= $check ?>_long_core(ctx, 0, 0, (unsigned long)val, sign);
@@ -42,7 +44,7 @@ static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?>_<?= $suffix ?>(qrintf
 
 static inline qrintf_<?= $check ?>_t _qrintf_<?= $check ?>_width_<?= $suffix ?>(qrintf_<?= $check ?>_t ctx, int fill_ch, int width, <?= $type ?> v)
 {
-    unsigned <?= $type ?> val = v >= 0 ? v : -(unsigned <?= $type ?>)v;
+    <?= $unsigned_type ?> val = v >= 0 ? v : -(<?= $unsigned_type ?>)v;
     int sign = v < 0;
     if (sizeof(<?= $type ?>) < sizeof(long long)) {
         return _qrintf_<?= $check ?>_long_core(ctx, fill_ch, width, (unsigned long)val, sign);
@@ -564,7 +566,7 @@ static inline qrintf_chk_t _qrintf_chk_long_long_core(qrintf_chk_t ctx, int fill
 }
 
 ? for my $check (qw(nck chk)) {
-<?= $build_d->($check, "char", "hhd") ?>
+<?= $build_d->($check, "signed char", "hhd") ?>
 <?= $build_d->($check, "short", "hd") ?>
 <?= $build_d->($check, "int", "d",) ?>
 <?= $build_d->($check, "long", "ld") ?>
